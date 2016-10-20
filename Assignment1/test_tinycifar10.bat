@@ -1,0 +1,2 @@
+python test_tinycifar10_dataset.py
+pause
