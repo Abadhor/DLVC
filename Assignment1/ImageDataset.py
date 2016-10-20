@@ -38,4 +38,4 @@ class ImageDataset:
 		Sample IDs start with 0 and are consecutive.
 		The channel order of samples must be RGB.
 		Throws an error if the sample does not exist."""
-		return self.data[sid, :], self.labels[sid]
+		return self.data[sid, :].reshape(3,32,32).transpose(1,2,0), self.labels[sid]

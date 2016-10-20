@@ -41,15 +41,15 @@ for i in range(0, test.nclasses()):
 
 sample_num = 499
 train_sample_img, train_sample_label = train.sample(499)
-im = train_sample_img.reshape(3,32,32).transpose(1,2,0)
+im = train_sample_img
 plt.imsave("00_normal_horse.png", im)
 
 eval_sample_img, eval_sample_label = val.sample(499)
-im = eval_sample_img.reshape(3,32,32).transpose(1,2,0)
+im = eval_sample_img
 plt.imsave("00_normal_deer.png", im)
 
 test_sample_img, test_sample_label = test.sample(499)
-im = test_sample_img.reshape(3,32,32).transpose(1,2,0)
+im = test_sample_img
 plt.imsave("00_normal_airplane.png", im)
 
 
