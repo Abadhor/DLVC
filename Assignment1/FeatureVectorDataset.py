@@ -1,9 +1,11 @@
 
 
 
-class ImageDataset:
-	# A dataset, consisting of multiple samples/images
+
+class FeatureVectorDataset:
+	# A dataset, consisting of multiple feature vectors
 	# and corresponding class labels.
+	
 	
 	def __init__(self):
 		self.data = None
@@ -38,7 +40,4 @@ class ImageDataset:
 		Sample IDs start with 0 and are consecutive.
 		The channel order of samples must be RGB.
 		Throws an error if the sample does not exist."""
-		#print(self.data[sid, :].shape)
-		#print(self.data[sid, :].reshape(3,32,32).transpose(1,2,0).shape)
-		#print(self.data[sid, :].reshape(3,32,32).transpose(1,2,0))
-		return self.data[sid, :].reshape(3,32,32).transpose(1,2,0), self.labels[sid]
+		return self.data[sid, :], self.labels[sid]
