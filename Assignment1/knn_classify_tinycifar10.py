@@ -14,12 +14,15 @@ random.seed(1)
 
 def getAccuracy(classifier, test_set):
 	label_correct = 0
-	for i in range(0, test_set.size()):
+	size = test_set.size()
+	#size = 10
+	for i in range(0, size):
 		fvec, label = test_set.sample(i)
 		pred_label = classifier.predict(fvec)
 		if pred_label == label:
 			label_correct += 1
-	return label_correct / test_set.size()
+		#print ("label: "+str(label)+" pred_label: "+str(pred_label))
+	return label_correct / size
 
 dir = '../Data/cifar-10-batches-py'
 
@@ -64,6 +67,15 @@ for i in range(0,20):
 		best_k = k
 		best_cmp = cmp
 
+print("Testing best combination ("+str(best_k)+", "+best_cmp+") on test set ...")
+k = best_k
+cmp = best_cmp
+cl = KnnClassifier(k, cmp)
+cl.train(train_vectorized)
+accuracy = getAccuracy(cl, test_vectorized)
+print("[test] "+str(test_vectorized.size())+" samples")
+print("Accuracy: "+str(accuracy*100)+"%")
+
 # clf = neighbors.KNeighborsClassifier(1)
 # fvecs = []
 # labels = []
@@ -76,20 +88,13 @@ for i in range(0,20):
 # clf.fit(fvecs, labels)
 
 # label_correct = 0
-# for i in range(0, val_vectorized.size()):
+# size = val_vectorized.size()
+# #size = 10
+# for i in range(0, size):
 	# fvec, label = val_vectorized.sample(i)
 	# pred_label = clf.predict(np.array(fvec).reshape(1,-1))
 	# if pred_label == label:
 		# label_correct += 1
+	# #print ("label: "+str(label)+" pred_label: "+str(pred_label))
 # print("Sklearn:")
-# print( label_correct / val_vectorized.size()*100)
-
-
-print("Testing best combination ("+str(best_k)+", "+best_cmp+") on test set ...")
-k = best_k
-cmp = best_cmp
-cl = KnnClassifier(k, cmp)
-cl.train(train_vectorized)
-accuracy = getAccuracy(cl, test_vectorized)
-print("[test] "+str(test_vectorized.size())+" samples")
-print("Accuracy: "+str(accuracy*100)+"%")
+# print( label_correct / size*100)
