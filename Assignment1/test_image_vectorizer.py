@@ -4,6 +4,8 @@
 import pickle as pkl
 import io
 import numpy as np
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from TinyCifar10Dataset import TinyCifar10Dataset

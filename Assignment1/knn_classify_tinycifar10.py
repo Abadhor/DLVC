@@ -2,14 +2,12 @@
 import pickle as pkl
 import io
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 from ImageVectorizer import ImageVectorizer
 from TinyCifar10Dataset import TinyCifar10Dataset
 from KnnClassifier import KnnClassifier
 import random
 
-from sklearn import neighbors
+#from sklearn import neighbors
 random.seed(1)
 
 def getAccuracy(classifier, test_set):
