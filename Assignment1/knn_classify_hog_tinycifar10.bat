@@ -1,0 +1,2 @@
+python knn_classify_hog_tinycifar10.py
+pause

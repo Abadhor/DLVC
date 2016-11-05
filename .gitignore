@@ -8,6 +8,7 @@ data_batch_4
 data_batch_5
 test_batch
 *.png
+*.h5
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
