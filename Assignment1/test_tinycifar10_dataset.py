@@ -3,10 +3,11 @@
 import pickle as pkl
 import io
 import numpy as np
-import matplotlib as mpl
-mpl.use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+#import matplotlib as mpl
+#mpl.use('Agg')
+#import matplotlib.pyplot as plt
+#import matplotlib.image as mpimg
+from skimage import io as ios
 from ImageDataset import ImageDataset
 from Cifar10Dataset import Cifar10Dataset, countLabelInstances, splitSet
 from TinyCifar10Dataset import TinyCifar10Dataset
@@ -44,15 +45,15 @@ for i in range(0, test.nclasses()):
 sample_num = 499
 train_sample_img, train_sample_label = train.sample(499)
 im = train_sample_img
-plt.imsave("00_tiny_horse.png", im)
+ios.imsave("00_tiny_horse.png", im)
 
 eval_sample_img, eval_sample_label = val.sample(499)
 im = eval_sample_img
-plt.imsave("00_tiny_deer.png", im)
+ios.imsave("00_tiny_deer.png", im)
 
 test_sample_img, test_sample_label = test.sample(499)
 im = test_sample_img
-plt.imsave("00_tiny_airplane.png", im)
+ios.imsave("00_tiny_airplane.png", im)
 
 
 print("[train] Sample #"+str(sample_num)+": "+train.classname(train_sample_label))

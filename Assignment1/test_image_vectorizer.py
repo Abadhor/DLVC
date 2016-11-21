@@ -4,10 +4,11 @@
 import pickle as pkl
 import io
 import numpy as np
-import matplotlib as mpl
-mpl.use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+#import matplotlib as mpl
+#mpl.use('Agg')
+#import matplotlib.pyplot as plt
+#import matplotlib.image as mpimg
+from skimage import io as ios
 from TinyCifar10Dataset import TinyCifar10Dataset
 from ImageVectorizer import ImageVectorizer
 
@@ -29,5 +30,5 @@ vec, label = train_vectorized.sample(sample_num)
 print("Sample #"+str(sample_num)+": "+train_vectorized.classname(label)+", shape: "+str(vec.shape))
 print("Shape after devectorization: "+str(train_vectorized.devectorize(vec).shape))
 
-im = train_vectorized.devectorize(vec)
-plt.imsave("00_vectorized_horse.png", im)
+im = train_vectorized.devectorize(vec.astype('uint8'))
+ios.imsave("00_vectorized_horse.png", im)
