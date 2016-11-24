@@ -21,6 +21,9 @@ class MiniBatchGenerator:
         self.setbatches()
 
 
+    def getbs(self):
+        return self.bs
+
     def setbatches(self):
         self.batchesdataids=[]
         for i in range(0, len(self.dataids), self.bs):
@@ -61,4 +64,4 @@ class MiniBatchGenerator:
             data.append(dataitem)
             labels.append(label)
 
-        return np.array(data), labels, indexes
+        return np.array(data), np.array(labels), indexes

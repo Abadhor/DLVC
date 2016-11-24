@@ -27,8 +27,10 @@ class SubtractionTransformation(SampleTransformation):
         # tform is an optional SampleTransformation to apply before computation.
 
         if tform!=None:
+            newdataset=[]
             for sample_i, sample in enumerate(dataset):
-                dataset[sample_i]=tform.apply(sample)
+                newdataset.append(tform.apply(sample))
+            dataset=np.array(newdataset)
 
         mean_value=np.mean(np.array(dataset))
         trans=SubtractionTransformation(mean_value)
@@ -59,8 +61,10 @@ class DivisionTransformation(SampleTransformation):
         # tform is an optional SampleTransformation to apply before computation.
 
         if tform!=None:
+            newdataset=[]
             for sample_i, sample in enumerate(dataset):
-                dataset[sample_i]=tform.apply(sample)
+                newdataset.append(tform.apply(sample))
+            dataset=np.array(newdataset)
 
         std_value=np.std(np.array(dataset))
         trans=DivisionTransformation(std_value)
