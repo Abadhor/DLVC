@@ -9,6 +9,10 @@ from Transformations import SubtractionTransformation, FloatCastTransformation, 
 from TransformationSequence import TransformationSequence
 
 dir = '../Data/cifar-10-batches-py'
+EPOCHS = 200
+MOMENTUM = 0.9
+LEARNING_RATE = 0.01
+MINI_BATCH_SIZE = 64
 
 train = TinyCifar10Dataset(dir, 'train')
 train_vectorized = ImageVectorizer(train)
@@ -51,7 +55,7 @@ val_data=np.array(newdataset)
 val_vectorized.setDataset(val_data, val_labels, val_label_names)
 
 #initializing minibatch
-train_minibatchgen=MiniBatchGenerator(train_vectorized, 64)
+train_minibatchgen=MiniBatchGenerator(train_vectorized, MINI_BATCH_SIZE)
 print("Initializing minibatch generators ...")
 print(" [train] "+str(train_vectorized.size())+" samples, "+str(train_minibatchgen.nbatches())+" minibatches of size "+str(train_minibatchgen.getbs())+"")
 
@@ -70,7 +74,8 @@ y_ = tf.placeholder(tf.float32, [None, 10])
 #cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(tf.nn.softmax(y)), reduction_indices=[1]))
 cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
 
-train_step = tf.train.GradientDescentOptimizer(0.9).minimize(cross_entropy)
+#train_step = tf.train.GradientDescentOptimizer(0.9).minimize(cross_entropy)
+train_step = tf.train.MomentumOptimizer(LEARNING_RATE, MOMENTUM).minimize(cross_entropy)
 
 
 #session
@@ -82,7 +87,7 @@ tf.initialize_all_variables().run()
 correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-for epoch in range(0, 100):
+for epoch in range(0, EPOCHS):
     train_accuracies=[]
     train_losses=[]
     val_accuracies=[]
