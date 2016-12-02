@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 from TinyCifar10Dataset import TinyCifar10Dataset
+from HDF5FeatureVectorDataset import HDF5FeatureVectorDataset
 from MiniBatchGenerator import MiniBatchGenerator
 from ImageVectorizer import ImageVectorizer
 from Transformations import SubtractionTransformation, FloatCastTransformation, DivisionTransformation
@@ -12,13 +13,13 @@ EPOCHS = 200
 MOMENTUM = 0.9
 LEARNING_RATE = 0.01
 MINI_BATCH_SIZE = 64
-SAVE_PATH = "."
-EARLY_STOPP_EPOCH_LIMIT = 20
+SAVE_PATH = "model_best.h5"
+EARLY_STOPP_EPOCH_LIMIT = 50
 
 dir = '../Data/cifar-10-batches-py'
-train_file = 'features_tinycifar10_train.h5'
-val_file = 'features_tinycifar10_val.h5'
-test_file = 'features_tinycifar10_test.h5'
+train_file = '/features_tinycifar10_train.h5'
+val_file = '/features_tinycifar10_val.h5'
+test_file = '/features_tinycifar10_test.h5'
 
 
 test = TinyCifar10Dataset(dir, 'test')
@@ -55,27 +56,27 @@ for sample_i, sample in enumerate(train_data):
     newsample=transformation_seq.apply(sample)
     newdataset.append(newsample)
 train_data=np.array(newdataset)
-train_vectorized.setDataset(train_data, train_labels, train_label_names)
+train_hog.setDataset(train_data, train_labels, train_label_names)
 
 newdataset=[]
 for sample_i, sample in enumerate(val_data):
     newsample=transformation_seq.apply(sample)
     newdataset.append(newsample)
 val_data=np.array(newdataset)
-val_vectorized.setDataset(val_data, val_labels, val_label_names)
+val_hog.setDataset(val_data, val_labels, val_label_names)
 
 #initializing minibatch
-train_minibatchgen=MiniBatchGenerator(train_vectorized, MINI_BATCH_SIZE)
+train_minibatchgen=MiniBatchGenerator(train_hog, MINI_BATCH_SIZE)
 print("Initializing minibatch generators ...")
-print(" [train] "+str(train_vectorized.size())+" samples, "+str(train_minibatchgen.nbatches())+" minibatches of size "+str(train_minibatchgen.getbs())+"")
+print(" [train] "+str(train_hog.size())+" samples, "+str(train_minibatchgen.nbatches())+" minibatches of size "+str(train_minibatchgen.getbs())+"")
 
-val_minibatchgen=MiniBatchGenerator(val_vectorized, 100)
-print(" [val] "+str(val_vectorized.size())+" samples, "+str(val_minibatchgen.nbatches())+" minibatches of size "+str(val_minibatchgen.getbs())+"")
+val_minibatchgen=MiniBatchGenerator(val_hog, 100)
+print(" [val] "+str(val_hog.size())+" samples, "+str(val_minibatchgen.nbatches())+" minibatches of size "+str(val_minibatchgen.getbs())+"")
 
 #defining NN structure
-x = tf.placeholder(tf.float32, [None, 3072])
+x = tf.placeholder(tf.float32, [None, 144])
 #W = tf.Variable(tf.random_normal([3072, 10], stddev=0.35), name="weights")
-W = tf.Variable(tf.zeros([3072, 10]), name="weights")
+W = tf.Variable(tf.zeros([144, 10]), name="weights")
 b = tf.Variable(tf.zeros([10]), name="biases")
 y = tf.matmul(x, W) + b
 
@@ -154,10 +155,10 @@ for epoch in range(0, EPOCHS):
     
     if epoch_validation_accuracy > best_model_accuracy:
         print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)
-	best_model_accuracy = epoch_validation_accuracy
-	best_model_epoch = epoch
+        best_model_accuracy = epoch_validation_accuracy
+        best_model_epoch = epoch
         save_path = saver.save(sess, SAVE_PATH)
-	no_improvement_count = 0
+        no_improvement_count = 0
     else:
         no_improvement_count += 1
     if no_improvement_count >= EARLY_STOPP_EPOCH_LIMIT:
