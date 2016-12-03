@@ -18,6 +18,7 @@ EARLY_STOPP_EPOCH_LIMIT = 50
 
 LEARNING_RATE_RANGE = [0.5, 0.1, 0.01, 0.001, 0.0001]
 WEIGHT_DECAY_RANGE = [0.5, 0.25, 0.125, 0.0625, 0.03125]
+#tf.logging.set_verbosity(tf.logging.ERROR)
 
 dir = '../Data/cifar-10-batches-py'
 train_file = '/features_tinycifar10_train.h5'
@@ -37,6 +38,9 @@ train_labels_one_hot=np.eye(10)[train_labels]
 
 val_data, val_labels, val_label_names=val_hog.getDataset()
 val_labels_one_hot=np.eye(10)[val_labels]
+
+test_data, test_labels, test_label_names=test_hog.getDataset()
+test_labels_one_hot=np.eye(10)[test_labels]
 
 #preprocessing
 print("Setting up preprocessing ...")
@@ -68,6 +72,14 @@ for sample_i, sample in enumerate(val_data):
 val_data=np.array(newdataset)
 val_hog.setDataset(val_data, val_labels, val_label_names)
 
+
+newdataset=[]
+for sample_i, sample in enumerate(test_data):
+    newsample=transformation_seq.apply(sample)
+    newdataset.append(newsample)
+test_data=np.array(newdataset)
+test_hog.setDataset(test_data, test_labels, test_label_names)
+
 #initializing minibatch
 train_minibatchgen=MiniBatchGenerator(train_hog, MINI_BATCH_SIZE)
 print("Initializing minibatch generators ...")
@@ -75,6 +87,7 @@ print(" [train] "+str(train_hog.size())+" samples, "+str(train_minibatchgen.nbat
 
 val_minibatchgen=MiniBatchGenerator(val_hog, 100)
 print(" [val] "+str(val_hog.size())+" samples, "+str(val_minibatchgen.nbatches())+" minibatches of size "+str(val_minibatchgen.getbs())+"")
+
 
 class SimpleNN():
 
@@ -104,7 +117,7 @@ class SimpleNN():
         
         tf.initialize_all_variables().run()
         correct_prediction = tf.equal(tf.argmax(self.y,1), tf.argmax(self.y_,1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
         #saver for best model
         self.saver = tf.train.Saver()
@@ -123,7 +136,7 @@ class SimpleNN():
                 sess.run(self.train_step, feed_dict={self.x: batch_data, self.y_: batch_labels_one_hot})
 
 
-                train_accuracy=sess.run(accuracy, feed_dict={self.x: batch_data, self.y_: batch_labels_one_hot})
+                train_accuracy=sess.run(self.accuracy, feed_dict={self.x: batch_data, self.y_: batch_labels_one_hot})
                 train_loss=sess.run(self.cross_entropy, feed_dict={self.x: batch_data, self.y_: batch_labels_one_hot})
 
                 train_accuracies.append(train_accuracy)
@@ -135,7 +148,7 @@ class SimpleNN():
                 batch_data, batch_labels, _ = val_minibatchgen.batch(i)
                 batch_labels_one_hot=np.eye(10)[batch_labels]
 
-                val_accuracy=sess.run(accuracy, feed_dict={self.x: batch_data, self.y_: batch_labels_one_hot})
+                val_accuracy=sess.run(self.accuracy, feed_dict={self.x: batch_data, self.y_: batch_labels_one_hot})
 
                 val_accuracies.append(val_accuracy)
             
@@ -161,10 +174,22 @@ class SimpleNN():
         self.saver.save(self.sess, SAVE_PATH)
 
     def test(self):
-        pass
+        test_accuracies = []
+        for i in range(0, test_minibatchgen.nbatches()):
+            batch_data, batch_labels, _ = test_minibatchgen.batch(i)
+            batch_labels_one_hot=np.eye(10)[batch_labels]
+
+            test_accuracy=self.sess.run(self.accuracy, feed_dict={self.x: batch_data, self.y_: batch_labels_one_hot})
+
+            test_accuracies.append(test_accuracy)
+            
+        test_accuracy = np.mean(test_accuracies)
+        return test_accuracy
 
 best_model_accuracy = -1.0
 best_network = None
+best_learning_rate = None
+best_weight_decay = None
 
 for learning_rate in LEARNING_RATE_RANGE:
     for weight_decay in WEIGHT_DECAY_RANGE:
@@ -175,10 +200,15 @@ for learning_rate in LEARNING_RATE_RANGE:
             best_network = network
             best_network.save()
             best_model_accuracy = accuracy
+            best_learning_rate = learning_rate
+            best_weight_decay = weight_decay
+            
 
-
-
-
+print("Testing best model (learning rate=%.4f, weight decay=%.4f) on test set ..." % (best_learning_rate, best_weight_decay))
+test_minibatchgen=MiniBatchGenerator(test_hog, 100)
+print(" [test] "+str(test_hog.size())+" samples, "+str(test_minibatchgen.nbatches())+" minibatches of size "+str(test_minibatchgen.getbs())+"")
+test_accuracy = best_network.test()
+print("Accuracy: %.2f%%" % (test_accuracy * 100))
 
 
 
