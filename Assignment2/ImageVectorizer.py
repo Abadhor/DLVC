@@ -12,8 +12,12 @@ class ImageVectorizer(FeatureVectorDataset):
 		self.dataset = dataset
 		data, labels, label_names = dataset.getDataset()
 		self.setDataset(data, labels, label_names)
+
+		self.rows=32
+		self.cols=32
+		self.channels=3
 	
 	def devectorize(self, fvec):
 		"""Convert a feature vector fvec obtained using sample()
 		back to an image and return the converted version."""
-		return fvec.reshape(3,32,32).transpose(1,2,0)
+		return fvec.reshape(self.channels,self.rows,self.cols).transpose(1,2,0)
