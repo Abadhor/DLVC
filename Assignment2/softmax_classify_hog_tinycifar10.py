@@ -5,7 +5,6 @@ import tensorflow as tf
 from TinyCifar10Dataset import TinyCifar10Dataset
 from HDF5FeatureVectorDataset import HDF5FeatureVectorDataset
 from MiniBatchGenerator import MiniBatchGenerator
-from ImageVectorizer import ImageVectorizer
 from Transformations import SubtractionTransformation, FloatCastTransformation, DivisionTransformation
 from TransformationSequence import TransformationSequence
 
@@ -34,6 +33,11 @@ train_labels_one_hot=np.eye(10)[train_labels]
 
 val_data, val_labels, val_label_names=val_hog.getDataset()
 val_labels_one_hot=np.eye(10)[val_labels]
+
+nclasses=train_hog.nclasses()
+vectorsize=len(train_data[0])
+
+print (nclasses, vectorsize)
 
 #preprocessing
 print("Setting up preprocessing ...")
@@ -74,13 +78,12 @@ val_minibatchgen=MiniBatchGenerator(val_hog, 100)
 print(" [val] "+str(val_hog.size())+" samples, "+str(val_minibatchgen.nbatches())+" minibatches of size "+str(val_minibatchgen.getbs())+"")
 
 #defining NN structure
-x = tf.placeholder(tf.float32, [None, 144])
-#W = tf.Variable(tf.random_normal([3072, 10], stddev=0.35), name="weights")
-W = tf.Variable(tf.zeros([144, 10]), name="weights")
-b = tf.Variable(tf.zeros([10]), name="biases")
+x = tf.placeholder(tf.float32, [None, vectorsize])
+W = tf.Variable(tf.zeros([vectorsize, nclasses]), name="weights")
+b = tf.Variable(tf.zeros([nclasses]), name="biases")
 y = tf.matmul(x, W) + b
 
-y_ = tf.placeholder(tf.float32, [None, 10])
+y_ = tf.placeholder(tf.float32, [None, nclasses])
 
 #cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(tf.nn.softmax(y)), reduction_indices=[1]))
 cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
@@ -110,24 +113,9 @@ for epoch in range(0, EPOCHS):
     val_accuracies=[]
     for i in range(0, train_minibatchgen.nbatches()):
         batch_data, batch_labels, _ = train_minibatchgen.batch(i)
-        batch_labels_one_hot=np.eye(10)[batch_labels]
+        batch_labels_one_hot=np.eye(nclasses)[batch_labels]
 
         sess.run(train_step, feed_dict={x: batch_data, y_: batch_labels_one_hot})
-
-        #print (train_labels_one_hot)
-        #print (train_data)
-        #print (sess.run(y, feed_dict={x: train_data}))
-        #print (sess.run(tf.nn.softmax(y), feed_dict={x: train_data}))
-        #print (sess.run(tf.nn.softmax_cross_entropy_with_logits(y, y_), feed_dict={x: train_data, y_: train_labels_one_hot}))
-        #aaa=sess.run(tf.nn.softmax_cross_entropy_with_logits(y, y_), feed_dict={x: train_data, y_: train_labels_one_hot})
-        #print (np.mean(aaa))
-        #print (sess.run(correct_prediction, feed_dict={x: train_data, y_: train_labels_one_hot}))
-        #sm=sess.run(tf.nn.softmax(y), feed_dict={x: batch_data})
-        #print (batch_labels)
-        #print (sm.shape)
-        #print (sm[batch_labels])
-        #print (np.mean(-1.0*np.sum(batch_labels_one_hot*np.log(sm+0.000000000001), axis=1)))
-
 
         train_accuracy=sess.run(accuracy, feed_dict={x: batch_data, y_: batch_labels_one_hot})
         train_loss=sess.run(cross_entropy, feed_dict={x: batch_data, y_: batch_labels_one_hot})
@@ -139,16 +127,12 @@ for epoch in range(0, EPOCHS):
 
     for i in range(0, val_minibatchgen.nbatches()):
         batch_data, batch_labels, _ = val_minibatchgen.batch(i)
-        batch_labels_one_hot=np.eye(10)[batch_labels]
+        batch_labels_one_hot=np.eye(nclasses)[batch_labels]
 
         val_accuracy=sess.run(accuracy, feed_dict={x: batch_data, y_: batch_labels_one_hot})
 
         val_accuracies.append(val_accuracy)
 
-    #train_accuracy=sess.run(accuracy, feed_dict={x: train_data, y_: train_labels_one_hot})
-    #train_loss=sess.run(cross_entropy, feed_dict={x: train_data, y_: train_labels_one_hot})
-    #val_accuracy=sess.run(accuracy, feed_dict={x: val_data, y_: val_labels_one_hot})
-    
     epoch_validation_accuracy = np.mean(val_accuracies)
 
     print ("[Epoch "+('%3d' % epoch)+"] loss: "+('%.3f' % np.mean(train_losses))+", training accuracy: "+('%.3f' % np.mean(train_accuracies))+", validation accuracy: "+('%.3f' % epoch_validation_accuracy))
@@ -161,7 +145,9 @@ for epoch in range(0, EPOCHS):
         no_improvement_count = 0
     else:
         no_improvement_count += 1
+
     if no_improvement_count >= EARLY_STOPP_EPOCH_LIMIT:
         print("Validation accuracy did not improve for %i epochs, stopping" % EARLY_STOPP_EPOCH_LIMIT)
         break
+
 print("Best validation accuracy: %.3f (epoch %i)" % (best_model_accuracy, best_model_epoch))
