@@ -19,10 +19,10 @@ class SimpleNN():
         self.y_ = tf.placeholder(tf.float32, [None, nclasses])
 
         #cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(tf.nn.softmax(y)), reduction_indices=[1]))
-        self.cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.y, self.y_) + weight_decay * tf.nn.l2_loss(self.W))
+        self.loss_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.y, self.y_) + weight_decay * tf.nn.l2_loss(self.W))
 
         #train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
-        self.train_step = tf.train.MomentumOptimizer(learning_rate, momentum).minimize(self.cross_entropy)
+        self.train_step = tf.train.MomentumOptimizer(learning_rate, momentum).minimize(self.loss_function)
 
     def train(self, train_minibatchgen, val_minibatchgen, epochs, early_stop_epoch_limit):
         #session
@@ -52,8 +52,7 @@ class SimpleNN():
                 sess.run(self.train_step, feed_dict={self.x: batch_data, self.y_: batch_labels_one_hot})
 
 
-                train_accuracy=sess.run(self.accuracy, feed_dict={self.x: batch_data, self.y_: batch_labels_one_hot})
-                train_loss=sess.run(self.cross_entropy, feed_dict={self.x: batch_data, self.y_: batch_labels_one_hot})
+                train_accuracy, train_loss=sess.run([self.accuracy, self.loss_function], feed_dict={self.x: batch_data, self.y_: batch_labels_one_hot})
 
                 train_accuracies.append(train_accuracy)
                 train_losses.append(train_loss)

@@ -85,11 +85,10 @@ y = tf.matmul(x, W) + b
 
 y_ = tf.placeholder(tf.float32, [None, nclasses])
 
-#cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(tf.nn.softmax(y)), reduction_indices=[1]))
-cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
+loss_function=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
 
 #train_step = tf.train.GradientDescentOptimizer(0.9).minimize(cross_entropy)
-train_step = tf.train.MomentumOptimizer(LEARNING_RATE, MOMENTUM).minimize(cross_entropy)
+train_step = tf.train.MomentumOptimizer(LEARNING_RATE, MOMENTUM).minimize(loss_function)
 
 
 #session
@@ -117,8 +116,7 @@ for epoch in range(0, EPOCHS):
 
         sess.run(train_step, feed_dict={x: batch_data, y_: batch_labels_one_hot})
 
-        train_accuracy=sess.run(accuracy, feed_dict={x: batch_data, y_: batch_labels_one_hot})
-        train_loss=sess.run(cross_entropy, feed_dict={x: batch_data, y_: batch_labels_one_hot})
+        train_accuracy, train_loss=sess.run([accuracy, loss_function], feed_dict={x: batch_data, y_: batch_labels_one_hot})
 
         train_accuracies.append(train_accuracy)
         train_losses.append(train_loss)

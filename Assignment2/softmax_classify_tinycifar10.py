@@ -74,14 +74,14 @@ y = tf.matmul(x, W) + b
 
 y_ = tf.placeholder(tf.float32, [None, nclasses])
 
-#cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(tf.nn.softmax(y)), reduction_indices=[1]))
-cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
+#loss_function=tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(tf.nn.softmax(y)), reduction_indices=[1]))
+loss_function=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
 
 #train_step = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(cross_entropy)
-train_step = tf.train.MomentumOptimizer(LEARNING_RATE, MOMENTUM).minimize(cross_entropy)
+train_step=tf.train.MomentumOptimizer(LEARNING_RATE, MOMENTUM).minimize(loss_function)
 
-correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+correct_prediction=tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy=tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 #session
 print("Initializing softmax classifier and optimizer ...")
@@ -100,23 +100,8 @@ for epoch in range(0, EPOCHS):
 
         sess.run(train_step, feed_dict={x: batch_data, y_: batch_labels_one_hot})
 
-        #print (train_labels_one_hot)
-        #print (train_data)
-        #print (sess.run(y, feed_dict={x: train_data}))
-        #print (sess.run(tf.nn.softmax(y), feed_dict={x: train_data}))
-        #print (sess.run(tf.nn.softmax_cross_entropy_with_logits(y, y_), feed_dict={x: train_data, y_: train_labels_one_hot}))
-        #aaa=sess.run(tf.nn.softmax_cross_entropy_with_logits(y, y_), feed_dict={x: train_data, y_: train_labels_one_hot})
-        #print (np.mean(aaa))
-        #print (sess.run(correct_prediction, feed_dict={x: train_data, y_: train_labels_one_hot}))
-        #sm=sess.run(tf.nn.softmax(y), feed_dict={x: batch_data})
-        #print (batch_labels)
-        #print (sm.shape)
-        #print (sm[batch_labels])
-        #print (np.mean(-1.0*np.sum(batch_labels_one_hot*np.log(sm+0.000000000000000000000000001), axis=1)))
-
-
-        train_accuracy=sess.run(accuracy, feed_dict={x: batch_data, y_: batch_labels_one_hot})
-        train_loss=sess.run(cross_entropy, feed_dict={x: batch_data, y_: batch_labels_one_hot})
+        train_accuracy, train_loss=sess.run([accuracy, loss_function], feed_dict={x: batch_data, y_: batch_labels_one_hot})
+        #train_loss=sess.run(cross_entropy, feed_dict={x: batch_data, y_: batch_labels_one_hot})
 
         train_accuracies.append(train_accuracy)
         train_losses.append(train_loss)
