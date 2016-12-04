@@ -10,6 +10,9 @@ test_batch
 *.png
 *.h5
 
+checkpoint
+*.meta
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
