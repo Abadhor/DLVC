@@ -8,7 +8,7 @@ from MiniBatchGenerator import MiniBatchGenerator
 from Transformations import PerChannelSubtractionImageTransformation, FloatCastTransformation, PerChannelDivisionImageTransformation
 from TransformationSequence import TransformationSequence
 
-EPOCHS = 1
+EPOCHS = 100
 MOMENTUM = 0.9
 LEARNING_RATE = 0.001
 MINI_BATCH_SIZE = 64
