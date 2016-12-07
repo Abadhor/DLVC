@@ -4,7 +4,8 @@ import io
 import numpy as np
 
 from TinyCifar10Dataset import TinyCifar10Dataset
-from Transformations import SubtractionTransformation, IdentityTransformation, FloatCastTransformation, DivisionTransformation
+from Cifar10Dataset import Cifar10Dataset
+from Transformations import *
 from TransformationSequence import TransformationSequence
 
 
@@ -12,15 +13,16 @@ dir = '../Data/cifar-10-batches-py'
 
 
 train = TinyCifar10Dataset(dir, 'train')
+#train = Cifar10Dataset(dir, 'train')
 
-data, labels, label_names = train.getDataset()
+#data, labels, label_names = train.getDataset()
 
 print ("Computing SubtractionTransformation from TinyCifar10Dataset [train] mean")
-subtraction_trans=SubtractionTransformation.from_dataset_mean(data)
+subtraction_trans=SubtractionTransformation.from_dataset_mean(train)
 print (" Value: "+('%.2f' % subtraction_trans.value))
 
 print ("Computing DivisionTransformation from TinyCifar10Dataset [train] stddev")
-devision_trans=DivisionTransformation.from_dataset_stddev(data)
+devision_trans=DivisionTransformation.from_dataset_stddev(train)
 print (" Value: "+('%.2f' % devision_trans.value))
 
 sample, label =train.sample(0)
@@ -46,4 +48,24 @@ transformation_seq.add_transformation(devision_trans)
 newsample=transformation_seq.apply(sample)
 print ("After applying sequence FloatCast -> SubtractionTransformation -> DivisionTransformation: shape: "+str(newsample.shape)+", data type: "+str(newsample.dtype)+", mean: "+('%.1f' % np.mean(newsample))+", min: "+('%.1f' % np.min(newsample))+", max: "+('%.1f' % np.max(newsample)))
 
-#, IdentityTransformation, FloatCastTransformation,
+
+print ("Computing PerChannelSubtractionImageTransformation from TinyCifar10Dataset [train] mean")
+perchannelsubtraction_trans=PerChannelSubtractionImageTransformation.from_dataset_mean(train)
+printtext=" Values: "
+for x in perchannelsubtraction_trans.values:
+    printtext+=('%.2f' % x)+" "
+print (printtext)
+
+print ("Computing PerChannelDivisionImageTransformation from TinyCifar10Dataset [train] mean")
+perchanneldevision_trans=PerChannelDivisionImageTransformation.from_dataset_stddev(train)
+printtext=" Values: "
+for x in perchanneldevision_trans.values:
+    printtext+=('%.2f' % x)+" "
+print (printtext)
+
+transformation_seq=TransformationSequence()
+transformation_seq.add_transformation(floatcast_trans)
+transformation_seq.add_transformation(perchannelsubtraction_trans)
+transformation_seq.add_transformation(perchanneldevision_trans)
+newsample=transformation_seq.apply(sample)
+print ("After applying sequence FloatCast -> PerChannelSubtractionImageTransformation -> PerChannelDivisionImageTransformation: shape: "+str(newsample.shape)+", data type: "+str(newsample.dtype)+", mean: "+('%.1f' % np.mean(newsample))+", min: "+('%.1f' % np.min(newsample))+", max: "+('%.1f' % np.max(newsample)))

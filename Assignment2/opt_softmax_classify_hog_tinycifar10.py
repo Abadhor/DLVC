@@ -6,18 +6,20 @@ from HDF5FeatureVectorDataset import HDF5FeatureVectorDataset
 from MiniBatchGenerator import MiniBatchGenerator
 from Transformations import SubtractionTransformation, FloatCastTransformation, DivisionTransformation
 from TransformationSequence import TransformationSequence
-from SimpleNN import SimpleNN
+from SoftmaxNN import SoftmaxNN
 
 EPOCHS = 200
 MOMENTUM = 0.9
 LEARNING_RATE = 0.01
 MINI_BATCH_SIZE = 64
-SAVE_PATH = "model_best.h5"
+SAVE_PATH = "model_best.hogoptsoftmax.h5"
 EARLY_STOPP_EPOCH_LIMIT = 50
 
 LEARNING_RATE_RANGE = [0.5, 0.1, 0.01, 0.001, 0.0001]
 WEIGHT_DECAY_RANGE = [0.5, 0.25, 0.125, 0.0625, 0.03125]
 #tf.logging.set_verbosity(tf.logging.ERROR)
+
+
 
 dir = '../Data/cifar-10-batches-py'
 train_file = '/features_tinycifar10_train.h5'
@@ -26,7 +28,7 @@ test_file = '/features_tinycifar10_test.h5'
 
 
 test = TinyCifar10Dataset(dir, 'test')
-data, labels, label_names = test.getDataset()
+_, _, label_names = test.getDataset()
 
 train_hog = HDF5FeatureVectorDataset(dir + train_file, label_names)
 val_hog = HDF5FeatureVectorDataset(dir + val_file, label_names)
@@ -48,10 +50,10 @@ vectorsize=len(train_data[0])
 print("Setting up preprocessing ...")
 print(" Adding FloatCastTransformation")
 float_trans=FloatCastTransformation()
-subtraction_trans=SubtractionTransformation.from_dataset_mean(train_data, float_trans)
+subtraction_trans=SubtractionTransformation.from_dataset_mean(train_hog, float_trans)
 print (" Adding SubtractionTransformation [train] (value: "+('%.2f' % subtraction_trans.value)+")")
 
-devision_trans=DivisionTransformation.from_dataset_stddev(train_data, float_trans)
+devision_trans=DivisionTransformation.from_dataset_stddev(train_hog, float_trans)
 print (" Adding DivisionTransformation [train] (value: "+('%.2f' % devision_trans.value)+")")
 
 #apply transformation
@@ -98,7 +100,7 @@ best_weight_decay = None
 
 for learning_rate in LEARNING_RATE_RANGE:
     for weight_decay in WEIGHT_DECAY_RANGE:
-        network = SimpleNN(learning_rate, MOMENTUM, weight_decay, nclasses, vectorsize)
+        network = SoftmaxNN(learning_rate, MOMENTUM, weight_decay, nclasses, vectorsize)
         accuracy = network.train(train_minibatchgen, val_minibatchgen, EPOCHS, EARLY_STOPP_EPOCH_LIMIT)
         if accuracy > best_model_accuracy:
             print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)

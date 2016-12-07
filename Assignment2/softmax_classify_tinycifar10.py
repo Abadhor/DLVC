@@ -31,10 +31,10 @@ vectorsize=len(train_vectorized.sample(0)[0])
 print("Setting up preprocessing ...")
 print(" Adding FloatCastTransformation")
 float_trans=FloatCastTransformation()
-subtraction_trans=SubtractionTransformation.from_dataset_mean(train_data, float_trans)
+subtraction_trans=SubtractionTransformation.from_dataset_mean(train_vectorized, float_trans)
 print (" Adding SubtractionTransformation [train] (value: "+('%.2f' % subtraction_trans.value)+")")
 
-devision_trans=DivisionTransformation.from_dataset_stddev(train_data, float_trans)
+devision_trans=DivisionTransformation.from_dataset_stddev(train_vectorized, float_trans)
 print (" Adding DivisionTransformation [train] (value: "+('%.2f' % devision_trans.value)+")")
 
 #apply transformation

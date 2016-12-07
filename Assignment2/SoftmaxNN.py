@@ -3,7 +3,7 @@ __author__='navid'
 import tensorflow as tf
 import numpy as np
 
-class SimpleNN():
+class SoftmaxNN():
 
     def __init__(self, learning_rate, momentum, weight_decay, nclasses, vectorsize):
 
