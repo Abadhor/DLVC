@@ -2,6 +2,8 @@
 from SampleTransformation import SampleTransformation
 import numpy as np
 import pdb
+import skimage
+import skimage.transform
 
 class IdentityTransformation(SampleTransformation):
     # A transformation that does not do anything.
@@ -179,3 +181,29 @@ class PerChannelDivisionImageTransformation(SampleTransformation):
     def values(self):
         # Return the divisors.
         return self.values
+
+class ResizeImageTransformation(SampleTransformation):
+    # Resize samples so that their smaller side length
+    # (width or height) is as specified. For instance, if
+    # the specified size is 32 and an input image is of
+    # shape 50x60x3, the output size will be 32x38x3.
+
+    def __init__(self, size):
+        # Constructor.
+        # size is the desired size of the smaller side of samples.
+        self.size=size
+
+    def apply(self, sample):
+        # Apply the transformation and return the transformed version.
+        # sample must be a 3D tensor with shape [rows,cols,channels].
+        # Throws an error if min(rows,cols) < size.
+        smallestsize=min(sample.shape[:2])
+        if smallestsize<self.size:
+            raise Exception('The smallest size is less then the given size')
+
+        if sample.shape[0]<sample.shape[1]:
+            output_shape=(self.size, int(float(sample.shape[1]*self.size)/float(sample.shape[0])))
+        else:
+            output_shape=(int(float(sample.shape[0]*self.size)/float(sample.shape[1])), self.size)
+
+        return skimage.transform.resize(sample, output_shape, preserve_range=True)

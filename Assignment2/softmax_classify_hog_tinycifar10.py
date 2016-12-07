@@ -12,7 +12,7 @@ EPOCHS = 200
 MOMENTUM = 0.9
 LEARNING_RATE = 0.01
 MINI_BATCH_SIZE = 64
-SAVE_PATH = "model_best.hog.h5"
+SAVE_PATH = "model_best.h5"
 EARLY_STOPP_EPOCH_LIMIT = 50
 
 dir = '../Data/cifar-10-batches-py'

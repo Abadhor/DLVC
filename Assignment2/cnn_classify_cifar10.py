@@ -8,11 +8,11 @@ from MiniBatchGenerator import MiniBatchGenerator
 from Transformations import PerChannelSubtractionImageTransformation, FloatCastTransformation, PerChannelDivisionImageTransformation
 from TransformationSequence import TransformationSequence
 
-EPOCHS = 100
+EPOCHS = 1
 MOMENTUM = 0.9
 LEARNING_RATE = 0.001
 MINI_BATCH_SIZE = 64
-SAVE_PATH = "model_best.hogoptcnn.h5"
+SAVE_PATH = "model_best.h5"
 EARLY_STOPP_EPOCH_LIMIT = 10
 WEIGHT_DECAY = 0.0001
 
@@ -109,13 +109,13 @@ def max_pool_2x2(x):
                         strides=[1, 2, 2, 1], padding='SAME')
 
 #layer0 input
-x = tf.placeholder(tf.float32, [None, 32, 32, 3])
-x_image = tf.reshape(x, [-1,32,32,3]) #batch, size, channel
+x = tf.placeholder(tf.float32, [None, 32, 32, 3], name="x")
+#x_image = tf.reshape(x, [-1,32,32,3]) #batch, size, channel
 
 #layer1 convolution
 W_conv1 = variable_with_weight_decay('W_conv1', [3, 3, 3, 16]) #patchsize, channels, features
 b_conv1 = variable_bias([16])
-h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
+h_conv1 = tf.nn.relu(conv2d(x, W_conv1) + b_conv1)
 h_pool1 = max_pool_2x2(h_conv1)
 
 #layer2 convolution
@@ -135,7 +135,7 @@ h_pool3_flat = tf.reshape(h_pool3, [-1, 4*4*32])
 W_fc1 = variable_with_weight_decay('W_fc1', [4*4*32, nclasses])
 b_fc1 = variable_bias([nclasses])
 
-y = tf.matmul(h_pool3_flat, W_fc1) + b_fc1
+y = tf.add(tf.matmul(h_pool3_flat, W_fc1), b_fc1, name="y")
 
 y_ = tf.placeholder(tf.float32, [None, nclasses])
 
@@ -152,12 +152,12 @@ tf.initialize_all_variables().run()
 correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-#saver for best model
 saver = tf.train.Saver()
 best_model_accuracy = -1.0
 best_model_epoch = -1
 no_improvement_count = 0
 
+print("Training for "+str(EPOCHS)+" epochs ...")
 for epoch in range(0, EPOCHS):
     train_accuracies=[]
     train_losses=[]
@@ -203,8 +203,18 @@ for epoch in range(0, EPOCHS):
 print("Best validation accuracy: %.3f (epoch %i)" % (best_model_accuracy, best_model_epoch))
 
 
-#print("Testing best model (learning rate=%.4f, weight decay=%.4f) on test set ..." % (best_learning_rate, best_weight_decay))
-#test_minibatchgen=MiniBatchGenerator(test, 100)
-#print(" [test] "+str(test_hog.size())+" samples, "+str(test_minibatchgen.nbatches())+" minibatches of size "+str(test_minibatchgen.getbs())+"")
-#test_accuracy = best_network.test(test_minibatchgen)
-#print("Accuracy: %.2f%%" % (test_accuracy * 100))
+print("Testing best model on test set ...")
+test_minibatchgen=MiniBatchGenerator(test, 100)
+print(" [test] "+str(test.size())+" samples, "+str(test_minibatchgen.nbatches())+" minibatches of size "+str(test_minibatchgen.getbs())+"")
+
+test_accuracies = []
+for i in range(0, test_minibatchgen.nbatches()):
+    batch_data, batch_labels, _ = test_minibatchgen.batch(i)
+    batch_labels_one_hot=np.eye(10)[batch_labels]
+
+    test_accuracy=sess.run(accuracy, feed_dict={x: batch_data, y_: batch_labels_one_hot})
+
+    test_accuracies.append(test_accuracy)
+
+test_accuracy = np.mean(test_accuracies)
+print("Accuracy: %.2f%%" % (test_accuracy * 100))
