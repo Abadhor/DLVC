@@ -4,13 +4,14 @@ import numpy as np
 from TinyCifar10Dataset import TinyCifar10Dataset
 from MiniBatchGenerator import MiniBatchGenerator
 from ImageVectorizer import ImageVectorizer
+import common
 
-dir = '../Data/cifar-10-batches-py'
+cifar10batchesdir=common.configs["cifar10batchesdir"]
 bs=60
 
 print ("=== Testing with TinyCifar10Dataset ===")
 print ()
-train = TinyCifar10Dataset(dir, 'train')
+train = TinyCifar10Dataset(cifar10batchesdir, 'train')
 minibatchgen=MiniBatchGenerator(train, 60)
 
 print ("Dataset has "+str(train.size())+" samples")
@@ -41,7 +42,7 @@ print ()
 print ("=== Testing with ImageVectorizer ===")
 print ()
 
-train = TinyCifar10Dataset(dir, 'train')
+train = TinyCifar10Dataset(cifar10batchesdir, 'train')
 train_vectorized = ImageVectorizer(train)
 minibatchgen=MiniBatchGenerator(train_vectorized, 60)
 

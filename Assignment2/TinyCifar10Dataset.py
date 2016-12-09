@@ -13,7 +13,8 @@ class TinyCifar10Dataset(ImageDataset):
 		files reside (e.g. data_batch_1 and test_batch).
 		split is a string that specifies which dataset split to load.
 		Can be 'train' (training set), 'val' (validation set) or 'test' (test set)."""
-		super(TinyCifar10Dataset, self).__init__()
+		super().__init__()
+		#super(TinyCifar10Dataset, self).__init__()
 		self.sample_ratio = 0.1
 		
 		cifar10 = Cifar10Dataset(fdir, split)

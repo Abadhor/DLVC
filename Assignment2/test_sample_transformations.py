@@ -7,15 +7,13 @@ from TinyCifar10Dataset import TinyCifar10Dataset
 from Cifar10Dataset import Cifar10Dataset
 from Transformations import *
 from TransformationSequence import TransformationSequence
+import common
+
+cifar10batchesdir=common.configs["cifar10batchesdir"]
 
 
-dir = '../Data/cifar-10-batches-py'
-
-
-train = TinyCifar10Dataset(dir, 'train')
+train = TinyCifar10Dataset(cifar10batchesdir, 'train')
 #train = Cifar10Dataset(dir, 'train')
-
-#data, labels, label_names = train.getDataset()
 
 print ("Computing SubtractionTransformation from TinyCifar10Dataset [train] mean")
 subtraction_trans=SubtractionTransformation.from_dataset_mean(train)

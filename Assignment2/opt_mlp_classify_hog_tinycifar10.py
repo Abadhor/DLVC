@@ -1,4 +1,3 @@
-import io
 import numpy as np
 
 from TinyCifar10Dataset import TinyCifar10Dataset
@@ -7,6 +6,7 @@ from MiniBatchGenerator import MiniBatchGenerator
 from Transformations import SubtractionTransformation, FloatCastTransformation, DivisionTransformation
 from TransformationSequence import TransformationSequence
 from MlpNN import MlpNN
+import common
 
 EPOCHS = 200
 MOMENTUM = 0.9
@@ -20,18 +20,18 @@ LEARNING_RATE_RANGE = [0.5, 0.1, 0.01, 0.001, 0.0001]
 WEIGHT_DECAY_RANGE = [0.5, 0.25, 0.125, 0.0625, 0.03125]
 #tf.logging.set_verbosity(tf.logging.ERROR)
 
-dir = '../Data/cifar-10-batches-py'
-train_file = '/features_tinycifar10_train.h5'
-val_file = '/features_tinycifar10_val.h5'
-test_file = '/features_tinycifar10_test.h5'
+cifar10batchesdir=common.configs["cifar10batchesdir"]
+train_file = common.configs['tinycifar10hog.trainfile']
+val_file = common.configs['tinycifar10hog.trainfile']
+test_file = common.configs['tinycifar10hog.trainfile']
 
 
-test = TinyCifar10Dataset(dir, 'test')
+test = TinyCifar10Dataset(cifar10batchesdir, 'test')
 _, _, label_names = test.getDataset()
 
-train_hog = HDF5FeatureVectorDataset(dir + train_file, label_names)
-val_hog = HDF5FeatureVectorDataset(dir + val_file, label_names)
-test_hog = HDF5FeatureVectorDataset(dir + test_file, label_names)
+train_hog = HDF5FeatureVectorDataset(train_file, label_names)
+val_hog = HDF5FeatureVectorDataset(val_file, label_names)
+test_hog = HDF5FeatureVectorDataset(test_file, label_names)
 
 train_data, train_labels, train_label_names=train_hog.getDataset()
 train_labels_one_hot=np.eye(10)[train_labels]
@@ -102,7 +102,7 @@ for learning_rate in LEARNING_RATE_RANGE:
         network = MlpNN(learning_rate, MOMENTUM, weight_decay, nclasses, vectorsize, HIDDEN_LAYER_SIZE)
         accuracy = network.train(train_minibatchgen, val_minibatchgen, EPOCHS, EARLY_STOPP_EPOCH_LIMIT)
         if accuracy > best_model_accuracy:
-            print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)
+            #print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)
             best_network = network
             best_network.save(SAVE_PATH)
             best_model_accuracy = accuracy

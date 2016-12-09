@@ -7,6 +7,7 @@ from HDF5FeatureVectorDataset import HDF5FeatureVectorDataset
 from MiniBatchGenerator import MiniBatchGenerator
 from Transformations import SubtractionTransformation, FloatCastTransformation, DivisionTransformation
 from TransformationSequence import TransformationSequence
+import common
 
 EPOCHS = 200
 MOMENTUM = 0.9
@@ -15,18 +16,18 @@ MINI_BATCH_SIZE = 64
 SAVE_PATH = "model_best_hogsoftmax.h5"
 EARLY_STOPP_EPOCH_LIMIT = 50
 
-dir = '../Data/cifar-10-batches-py'
-train_file = '/features_tinycifar10_train.h5'
-val_file = '/features_tinycifar10_val.h5'
-test_file = '/features_tinycifar10_test.h5'
+cifar10batchesdir=common.configs["cifar10batchesdir"]
+train_file = common.configs['tinycifar10hog.trainfile']
+val_file = common.configs['tinycifar10hog.trainfile']
+test_file = common.configs['tinycifar10hog.trainfile']
 
 
-test = TinyCifar10Dataset(dir, 'test')
+test = TinyCifar10Dataset(cifar10batchesdir, 'test')
 _, _, label_names = test.getDataset()
 
-train_hog = HDF5FeatureVectorDataset(dir + train_file, label_names)
-val_hog = HDF5FeatureVectorDataset(dir + val_file, label_names)
-test_hog = HDF5FeatureVectorDataset(dir + test_file, label_names)
+train_hog = HDF5FeatureVectorDataset(train_file, label_names)
+val_hog = HDF5FeatureVectorDataset(val_file, label_names)
+test_hog = HDF5FeatureVectorDataset(test_file, label_names)
 
 train_data, train_labels, train_label_names=train_hog.getDataset()
 train_labels_one_hot=np.eye(10)[train_labels]
@@ -136,7 +137,7 @@ for epoch in range(0, EPOCHS):
     print ("[Epoch "+('%3d' % epoch)+"] loss: "+('%.3f' % np.mean(train_losses))+", training accuracy: "+('%.3f' % np.mean(train_accuracies))+", validation accuracy: "+('%.3f' % epoch_validation_accuracy))
     
     if epoch_validation_accuracy > best_model_accuracy:
-        print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)
+        #print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)
         best_model_accuracy = epoch_validation_accuracy
         best_model_epoch = epoch
         save_path = saver.save(sess, SAVE_PATH)

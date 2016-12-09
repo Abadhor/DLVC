@@ -7,19 +7,21 @@ from MiniBatchGenerator import MiniBatchGenerator
 from ImageVectorizer import ImageVectorizer
 from Transformations import SubtractionTransformation, FloatCastTransformation, DivisionTransformation
 from TransformationSequence import TransformationSequence
+import common
 
-dir = '../Data/cifar-10-batches-py'
+cifar10batchesdir=common.configs["cifar10batchesdir"]
+
 EPOCHS = 200
 MOMENTUM = 0.9
 LEARNING_RATE = 0.01
 MINI_BATCH_SIZE = 64
 
-train = TinyCifar10Dataset(dir, 'train')
+train = TinyCifar10Dataset(cifar10batchesdir, 'train')
 train_vectorized = ImageVectorizer(train)
 train_data, train_labels, train_label_names=train_vectorized.getDataset()
 train_labels_one_hot=np.eye(10)[train_labels]
 
-val= TinyCifar10Dataset(dir, 'val')
+val= TinyCifar10Dataset(cifar10batchesdir, 'val')
 val_vectorized = ImageVectorizer(val)
 val_data, val_labels, val_label_names=val_vectorized.getDataset()
 val_labels_one_hot=np.eye(10)[val_labels]

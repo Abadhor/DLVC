@@ -7,6 +7,7 @@ from ImageVectorizer import ImageVectorizer
 from MiniBatchGenerator import MiniBatchGenerator
 from Transformations import PerChannelSubtractionImageTransformation, FloatCastTransformation, PerChannelDivisionImageTransformation
 from TransformationSequence import TransformationSequence
+import common
 
 EPOCHS = 100
 MOMENTUM = 0.9
@@ -16,21 +17,22 @@ SAVE_PATH = "model_best.h5"
 EARLY_STOPP_EPOCH_LIMIT = 10
 WEIGHT_DECAY = 0.0001
 
-dir = '../Data/cifar-10-batches-py'
+
+cifar10batchesdir=common.configs["cifar10batchesdir"]
 
 print("Loading Cifar10Dataset ...")
 
-train= Cifar10Dataset(dir, 'train')
+train= Cifar10Dataset(cifar10batchesdir, 'train')
 train_vectorized = ImageVectorizer(train)
 train_data, train_labels, train_label_names=train_vectorized.getDataset()
 train_labels_one_hot=np.eye(10)[train_labels]
 
-val= Cifar10Dataset(dir, 'val')
+val= Cifar10Dataset(cifar10batchesdir, 'val')
 val_vectorized = ImageVectorizer(val)
 val_data, val_labels, val_label_names=val_vectorized.getDataset()
 val_labels_one_hot=np.eye(10)[val_labels]
 
-test= Cifar10Dataset(dir, 'test')
+test= Cifar10Dataset(cifar10batchesdir, 'test')
 test_vectorized = ImageVectorizer(test)
 test_data, test_labels, test_label_names=test_vectorized.getDataset()
 test_labels_one_hot=np.eye(10)[test_labels]
@@ -108,36 +110,37 @@ def max_pool_2x2(x):
     return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],
                         strides=[1, 2, 2, 1], padding='SAME')
 
-#layer0 input
-x = tf.placeholder(tf.float32, [None, 32, 32, 3], name="x")
-#x_image = tf.reshape(x, [-1,32,32,3]) #batch, size, channel
+with tf.device(common.configs["devicename"]):
+    #layer0 input
+    x = tf.placeholder(tf.float32, [None, 32, 32, 3], name="x")
+    #x_image = tf.reshape(x, [-1,32,32,3]) #batch, size, channel
 
-#layer1 convolution
-W_conv1 = variable_with_weight_decay('W_conv1', [3, 3, 3, 16]) #patchsize, channels, features
-b_conv1 = variable_bias([16])
-h_conv1 = tf.nn.relu(conv2d(x, W_conv1) + b_conv1)
-h_pool1 = max_pool_2x2(h_conv1)
+    #layer1 convolution
+    W_conv1 = variable_with_weight_decay('W_conv1', [3, 3, 3, 16]) #patchsize, channels, features
+    b_conv1 = variable_bias([16])
+    h_conv1 = tf.nn.relu(conv2d(x, W_conv1) + b_conv1)
+    h_pool1 = max_pool_2x2(h_conv1)
 
-#layer2 convolution
-W_conv2 = variable_with_weight_decay('W_conv2', [3, 3, 16, 32]) #patchsize, channels, features
-b_conv2 = variable_bias([32])
-h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
-h_pool2 = max_pool_2x2(h_conv2)
+    #layer2 convolution
+    W_conv2 = variable_with_weight_decay('W_conv2', [3, 3, 16, 32]) #patchsize, channels, features
+    b_conv2 = variable_bias([32])
+    h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
+    h_pool2 = max_pool_2x2(h_conv2)
 
-#layer3 convolution
-W_conv3 = variable_with_weight_decay('W_conv3', [3, 3, 32, 32]) #patchsize, channels, features
-b_conv3 = variable_bias([32])
-h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3)
-h_pool3 = max_pool_2x2(h_conv3)
+    #layer3 convolution
+    W_conv3 = variable_with_weight_decay('W_conv3', [3, 3, 32, 32]) #patchsize, channels, features
+    b_conv3 = variable_bias([32])
+    h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3)
+    h_pool3 = max_pool_2x2(h_conv3)
 
-#layer3 flatten
-h_pool3_flat = tf.reshape(h_pool3, [-1, 4*4*32])
-W_fc1 = variable_with_weight_decay('W_fc1', [4*4*32, nclasses])
-b_fc1 = variable_bias([nclasses])
+    #layer3 flatten
+    h_pool3_flat = tf.reshape(h_pool3, [-1, 4*4*32])
+    W_fc1 = variable_with_weight_decay('W_fc1', [4*4*32, nclasses])
+    b_fc1 = variable_bias([nclasses])
 
-y = tf.add(tf.matmul(h_pool3_flat, W_fc1), b_fc1, name="y")
+    y = tf.add(tf.matmul(h_pool3_flat, W_fc1), b_fc1, name="y")
 
-y_ = tf.placeholder(tf.float32, [None, nclasses])
+    y_ = tf.placeholder(tf.float32, [None, nclasses])
 
 
 total_loss=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_) + tf.add_n(tf.get_collection('weight_decays')))
@@ -146,7 +149,11 @@ train_step = tf.train.MomentumOptimizer(LEARNING_RATE, MOMENTUM).minimize(total_
 
 
 #session
-sess = tf.InteractiveSession()
+config = tf.ConfigProto()#log_device_placement=True
+config.gpu_options.per_process_gpu_memory_fraction = 0.4
+sess=tf.InteractiveSession(config=config)
+
+#sess = tf.InteractiveSession()
 
 tf.initialize_all_variables().run()
 correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
@@ -188,7 +195,7 @@ for epoch in range(0, EPOCHS):
     print ("[Epoch "+('%3d' % epoch)+"] loss: "+('%.3f' % np.mean(train_losses))+", training accuracy: "+('%.3f' % np.mean(train_accuracies))+", validation accuracy: "+('%.3f' % epoch_validation_accuracy))
     
     if epoch_validation_accuracy > best_model_accuracy:
-        print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)
+        #print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)
         best_model_accuracy = epoch_validation_accuracy
         best_model_epoch = epoch
         save_path = saver.save(sess, SAVE_PATH)
