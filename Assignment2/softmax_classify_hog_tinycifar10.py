@@ -137,7 +137,7 @@ for epoch in range(0, EPOCHS):
     print ("[Epoch "+('%3d' % epoch)+"] loss: "+('%.3f' % np.mean(train_losses))+", training accuracy: "+('%.3f' % np.mean(train_accuracies))+", validation accuracy: "+('%.3f' % epoch_validation_accuracy))
     
     if epoch_validation_accuracy > best_model_accuracy:
-        #print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)
+        print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)
         best_model_accuracy = epoch_validation_accuracy
         best_model_epoch = epoch
         save_path = saver.save(sess, SAVE_PATH)

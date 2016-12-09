@@ -102,7 +102,7 @@ for learning_rate in LEARNING_RATE_RANGE:
         network = MlpNN(learning_rate, MOMENTUM, weight_decay, nclasses, vectorsize, HIDDEN_LAYER_SIZE)
         accuracy = network.train(train_minibatchgen, val_minibatchgen, EPOCHS, EARLY_STOPP_EPOCH_LIMIT)
         if accuracy > best_model_accuracy:
-            #print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)
+            print("New best validation accuracy, saving model to \"%s\"" % SAVE_PATH)
             best_network = network
             best_network.save(SAVE_PATH)
             best_model_accuracy = accuracy
