@@ -8,6 +8,7 @@ data_batch_4
 data_batch_5
 test_batch
 *.png
+*.jpg
 *.h5
 
 checkpoint
