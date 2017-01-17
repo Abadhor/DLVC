@@ -251,7 +251,18 @@ print("Best validation accuracy: %.3f (epoch %i)" % (best_model_accuracy, best_m
 
 
 print("Testing best model on test set ...")
-test_minibatchgen=MiniBatchGenerator(test, 100)
+print("Setting up batch transformations for Test Set ...")
+val_batch_tform_seq = TransformationSequence()
+
+print(" Adding Mirror Transformation")
+mirror_trans = HorizontalMirroringTransformation(MIRROR_PROB)
+val_batch_tform_seq.add_transformation(mirror_trans)
+
+print(" Adding Center Crop Transformation")
+center_crop_trans = CenterCropTransformation(CROP_WIDTH, CROP_HEIGHT)
+val_batch_tform_seq.add_transformation(center_crop_trans)
+
+test_minibatchgen=MiniBatchGenerator(test, 100, val_batch_tform_seq)
 print(" [test] "+str(test.size())+" samples, "+str(test_minibatchgen.nbatches())+" minibatches of size "+str(test_minibatchgen.getbs())+"")
 
 test_accuracies = []
