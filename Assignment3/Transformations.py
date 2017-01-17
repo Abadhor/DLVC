@@ -250,3 +250,28 @@ class RandomCropTransformation(SampleTransformation):
         height_slide = random.randint(0, height_diff)
         width_slide= random.randint(0, width_diff)
         return sample[height_slide:(height_slide+self.height), width_slide:(width_slide+self.width), :]
+
+class CenterCropTransformation(SampleTransformation):
+    # Crop samples to a given size.
+
+    def __init__(self, width, height):
+        # Constructor.
+        # Images are cropped to the specified width and height on all sides equally.
+        self.width = width
+        self.height = height
+
+    def apply(self, sample):
+        # Apply the transformation and return the transformed version.
+        # sample must be a 3D tensor with shape [rows,cols,channels].
+        # If rows < height or cols < width, an error is raised.
+        rows = sample.shape[0]
+        cols = sample.shape[1]
+        if (rows < self.height):
+            raise Exception('The height of the sample is smaller than the cropped height')
+        if (cols < self.width):
+            raise Exception('The width of the sample is smaller than the cropped width')
+        height_diff = rows - self.height
+        width_diff = cols - self.width
+        height_slide = int(height_diff/2)
+        width_slide= int(width_diff/2)
+        return sample[height_slide:(height_slide+self.height), width_slide:(width_slide+self.width), :]

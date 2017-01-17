@@ -25,6 +25,7 @@ savepath = "augmented_samples/"
 print("Creating Transformations")
 mirror_trans = HorizontalMirroringTransformation(MIRROR_PROB)
 crop_trans = RandomCropTransformation(CROP_WIDTH, CROP_HEIGHT)
+center_crop_trans = CenterCropTransformation(CROP_WIDTH, CROP_HEIGHT)
 
 transformation_seq=TransformationSequence()
 transformation_seq.add_transformation(mirror_trans)
@@ -35,3 +36,8 @@ for i in range(0,10):
     newsample=transformation_seq.apply(sample)
     imsave(savepath+("%02.i_" % i)+imageName, newsample)
 
+transformation_seq=TransformationSequence()
+transformation_seq.add_transformation(center_crop_trans)
+
+newsample=transformation_seq.apply(sample)
+imsave(savepath+"00_center_"+imageName, newsample)
