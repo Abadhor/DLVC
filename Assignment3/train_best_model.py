@@ -126,7 +126,7 @@ def variable_with_weight_decay(name, shape):
     return var
 
 def variable_bias(shape):
-    initial=tf.constant(0.0, shape=shape)
+    initial=tf.constant(0.1, shape=shape)
     return tf.Variable(initial)
     #return tf.get_variable(shape=shape, initializer=tf.contrib.layers.xavier_initializer())
 
@@ -139,7 +139,7 @@ def max_pool_2x2(x):
 
 with tf.device(common.configs["devicename"]):
     #layer0 input
-    x = tf.placeholder(tf.float32, [None, 32, 32, 3], name="x")
+    x = tf.placeholder(tf.float32, [None, 24, 24, 3], name="x")
     #x_image = tf.reshape(x, [-1,32,32,3]) #batch, size, channel
 
     #layer1 convolution
@@ -161,11 +161,24 @@ with tf.device(common.configs["devicename"]):
     h_pool3 = max_pool_2x2(h_conv3)
 
     #layer3 flatten
-    h_pool3_flat = tf.reshape(h_pool3, [-1, 4*4*32])
-    W_fc1 = variable_with_weight_decay('W_fc1', [4*4*32, nclasses])
-    b_fc1 = variable_bias([nclasses])
+    h_pool3_flat = tf.reshape(h_pool3, [-1, 3*3*32])
+    W_fc1 = variable_with_weight_decay('W_fc1', [3*3*32, 128])
+    b_fc1 = variable_bias([128])
+    #W_fc1 = variable_with_weight_decay('W_fc1', [3*3*32, nclasses])
+    #b_fc1 = variable_bias([nclasses])
 
-    y = tf.add(tf.matmul(h_pool3_flat, W_fc1), b_fc1, name="y")
+
+    h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
+    
+    #dropout
+    keep_prob = tf.placeholder(tf.float32)
+    h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+    
+    #second fully connected layer
+    W_fc2 = variable_with_weight_decay('W_fc2', [128, nclasses])
+    b_fc2 = variable_bias([nclasses])
+    
+    y = tf.add(tf.matmul(h_fc1_drop, W_fc2), b_fc2, name="y")
 
     y_ = tf.placeholder(tf.float32, [None, nclasses])
 
@@ -202,7 +215,7 @@ for epoch in range(0, EPOCHS):
 
         sess.run(train_step, feed_dict={x: batch_data, y_: batch_labels_one_hot})
 
-        train_accuracy, train_loss=sess.run([accuracy, total_loss], feed_dict={x: batch_data, y_: batch_labels_one_hot})
+        train_accuracy, train_loss=sess.run([accuracy, total_loss], feed_dict={x: batch_data, y_: batch_labels_one_hot, keep_prob: 0.5})
 
         train_accuracies.append(train_accuracy)
         train_losses.append(train_loss)
@@ -213,7 +226,7 @@ for epoch in range(0, EPOCHS):
         batch_data, batch_labels, _ = val_minibatchgen.batch(i)
         batch_labels_one_hot=np.eye(nclasses)[batch_labels]
 
-        val_accuracy=sess.run(accuracy, feed_dict={x: batch_data, y_: batch_labels_one_hot})
+        val_accuracy=sess.run(accuracy, feed_dict={x: batch_data, y_: batch_labels_one_hot, keep_prob: 1.0})
 
         val_accuracies.append(val_accuracy)
 
@@ -246,7 +259,7 @@ for i in range(0, test_minibatchgen.nbatches()):
     batch_data, batch_labels, _ = test_minibatchgen.batch(i)
     batch_labels_one_hot=np.eye(10)[batch_labels]
 
-    test_accuracy=sess.run(accuracy, feed_dict={x: batch_data, y_: batch_labels_one_hot})
+    test_accuracy=sess.run(accuracy, feed_dict={x: batch_data, y_: batch_labels_one_hot, keep_prob: 1.0})
 
     test_accuracies.append(test_accuracy)
 
