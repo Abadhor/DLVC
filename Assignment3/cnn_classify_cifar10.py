@@ -63,12 +63,44 @@ for i in range(train.size()):
 train_data=np.array(newdata)
 train.setDataset(train_data, train_labels, train_label_names)
 
+
+print("Setting up preprocessing ...")
+transformation_seq=TransformationSequence()
+
+print(" Adding FloatCastTransformation")
+floatcast_trans=FloatCastTransformation()
+transformation_seq.add_transformation(floatcast_trans)
+
+perchannelsubtraction_trans=PerChannelSubtractionImageTransformation.from_dataset_mean(val)
+transformation_seq.add_transformation(perchannelsubtraction_trans)
+print (" Adding PerChannelSubtractionImageTransformation [val] (value: "+str(perchannelsubtraction_trans.values)+")")
+
+perchanneldevision_trans=PerChannelDivisionImageTransformation.from_dataset_stddev(val)
+transformation_seq.add_transformation(perchanneldevision_trans)
+print (" Adding PerChannelDivisionImageTransformation [val] (value: "+str(perchanneldevision_trans.values)+")")
+
 newdata=[]
 for i in range(val.size()):
     newsample=transformation_seq.apply(val.sample(i)[0])
     newdata.append(newsample)
 val_data=np.array(newdata)
 val.setDataset(val_data, val_labels, val_label_names)
+
+
+print("Setting up preprocessing ...")
+transformation_seq=TransformationSequence()
+
+print(" Adding FloatCastTransformation")
+floatcast_trans=FloatCastTransformation()
+transformation_seq.add_transformation(floatcast_trans)
+
+perchannelsubtraction_trans=PerChannelSubtractionImageTransformation.from_dataset_mean(test)
+transformation_seq.add_transformation(perchannelsubtraction_trans)
+print (" Adding PerChannelSubtractionImageTransformation [test] (value: "+str(perchannelsubtraction_trans.values)+")")
+
+perchanneldevision_trans=PerChannelDivisionImageTransformation.from_dataset_stddev(test)
+transformation_seq.add_transformation(perchanneldevision_trans)
+print (" Adding PerChannelDivisionImageTransformation [test] (value: "+str(perchanneldevision_trans.values)+")")
 
 newdata=[]
 for i in range(test.size()):
@@ -98,9 +130,9 @@ def variable_with_weight_decay(name, shape):
     tf.add_to_collection('weight_decays', weight_decay)
     return var
 
-def variable_bias(shape):
-    initial=tf.constant(0.0, shape=shape)
-    return tf.Variable(initial)
+def variable_bias(name, shape):
+    #initial=tf.constant_initializer(0.0)
+    return tf.get_variable(name, shape, initializer=tf.constant_initializer(0.0))
     #return tf.get_variable(shape=shape, initializer=tf.contrib.layers.xavier_initializer())
 
 def conv2d(x, W):
@@ -117,26 +149,26 @@ with tf.device(common.configs["devicename"]):
 
     #layer1 convolution
     W_conv1 = variable_with_weight_decay('W_conv1', [3, 3, 3, 16]) #patchsize, channels, features
-    b_conv1 = variable_bias([16])
+    b_conv1 = variable_bias('b_conv1',[16])
     h_conv1 = tf.nn.relu(conv2d(x, W_conv1) + b_conv1)
     h_pool1 = max_pool_2x2(h_conv1)
 
     #layer2 convolution
     W_conv2 = variable_with_weight_decay('W_conv2', [3, 3, 16, 32]) #patchsize, channels, features
-    b_conv2 = variable_bias([32])
+    b_conv2 = variable_bias('b_conv2',[32])
     h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
     h_pool2 = max_pool_2x2(h_conv2)
 
     #layer3 convolution
     W_conv3 = variable_with_weight_decay('W_conv3', [3, 3, 32, 32]) #patchsize, channels, features
-    b_conv3 = variable_bias([32])
+    b_conv3 = variable_bias('b_conv3',[32])
     h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3)
     h_pool3 = max_pool_2x2(h_conv3)
 
     #layer3 flatten
     h_pool3_flat = tf.reshape(h_pool3, [-1, 4*4*32])
     W_fc1 = variable_with_weight_decay('W_fc1', [4*4*32, nclasses])
-    b_fc1 = variable_bias([nclasses])
+    b_fc1 = variable_bias('b_fc1',[nclasses])
 
     y = tf.add(tf.matmul(h_pool3_flat, W_fc1), b_fc1, name="y")
 

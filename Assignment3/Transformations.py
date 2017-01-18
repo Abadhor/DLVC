@@ -224,7 +224,7 @@ class HorizontalMirroringTransformation(SampleTransformation):
         if random.random() < self.proba:
             return sample
         else:
-            return np.flip(sample, 1)
+            return np.fliplr(sample)
 
 class RandomCropTransformation(SampleTransformation):
     # Randomly crop samples to a given size.

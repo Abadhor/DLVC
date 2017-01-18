@@ -28,22 +28,12 @@ cifar10batchesdir=common.configs["cifar10batchesdir"]
 print("Loading Cifar10Dataset ...")
 
 train= Cifar10Dataset(cifar10batchesdir, 'train')
-train_vectorized = ImageVectorizer(train)
-train_data, train_labels, train_label_names=train_vectorized.getDataset()
-train_labels_one_hot=np.eye(10)[train_labels]
+
 
 val= Cifar10Dataset(cifar10batchesdir, 'val')
-val_vectorized = ImageVectorizer(val)
-val_data, val_labels, val_label_names=val_vectorized.getDataset()
-val_labels_one_hot=np.eye(10)[val_labels]
 
-test= Cifar10Dataset(cifar10batchesdir, 'test')
-test_vectorized = ImageVectorizer(test)
-test_data, test_labels, test_label_names=test_vectorized.getDataset()
-test_labels_one_hot=np.eye(10)[test_labels]
 
 nclasses=train.nclasses()
-vectorsize=len(train_data[0])
 
 #preprocessing
 print("Setting up preprocessing...")
@@ -62,32 +52,23 @@ transformation_seq.add_transformation(perchanneldevision_trans)
 print (" Adding PerChannelDivisionImageTransformation [train] (value: "+str(perchanneldevision_trans.values)+")")
 
 
-newdata=[]
-for i in range(train.size()):
-    newsample=transformation_seq.apply(train.sample(i)[0])
-    newdata.append(newsample)
-train_data=np.array(newdata)
-train.setDataset(train_data, train_labels, train_label_names)
-
-newdata=[]
-for i in range(val.size()):
-    newsample=transformation_seq.apply(val.sample(i)[0])
-    newdata.append(newsample)
-val_data=np.array(newdata)
-val.setDataset(val_data, val_labels, val_label_names)
-
-newdata=[]
-for i in range(test.size()):
-    newsample=transformation_seq.apply(test.sample(i)[0])
-    newdata.append(newsample)
-test_data=np.array(newdata)
-test.setDataset(test_data, test_labels, test_label_names)
-
 #initializing minibatch
 print("Initializing minibatch generators ...")
 
 print("Setting up batch transformations for Training Set ...")
 train_batch_tform_seq = TransformationSequence()
+
+print(" Adding FloatCastTransformation")
+floatcast_trans=FloatCastTransformation()
+train_batch_tform_seq.add_transformation(floatcast_trans)
+
+perchannelsubtraction_trans=PerChannelSubtractionImageTransformation.from_dataset_mean(train)
+train_batch_tform_seq.add_transformation(perchannelsubtraction_trans)
+print (" Adding PerChannelSubtractionImageTransformation [train] (value: "+str(perchannelsubtraction_trans.values)+")")
+
+perchanneldevision_trans=PerChannelDivisionImageTransformation.from_dataset_stddev(train)
+train_batch_tform_seq.add_transformation(perchanneldevision_trans)
+print (" Adding PerChannelDivisionImageTransformation [train] (value: "+str(perchanneldevision_trans.values)+")")
 
 print(" Adding Mirror Transformation")
 mirror_trans = HorizontalMirroringTransformation(MIRROR_PROB)
@@ -103,6 +84,18 @@ print(" [train] "+str(train.size())+" samples, "+str(train_minibatchgen.nbatches
 
 print("Setting up batch transformations for Validation Set ...")
 val_batch_tform_seq = TransformationSequence()
+
+print(" Adding FloatCastTransformation")
+floatcast_trans=FloatCastTransformation()
+val_batch_tform_seq.add_transformation(floatcast_trans)
+
+perchannelsubtraction_trans=PerChannelSubtractionImageTransformation.from_dataset_mean(val)
+val_batch_tform_seq.add_transformation(perchannelsubtraction_trans)
+print (" Adding PerChannelSubtractionImageTransformation [val] (value: "+str(perchannelsubtraction_trans.values)+")")
+
+perchanneldevision_trans=PerChannelDivisionImageTransformation.from_dataset_stddev(val)
+val_batch_tform_seq.add_transformation(perchanneldevision_trans)
+print (" Adding PerChannelDivisionImageTransformation [val] (value: "+str(perchanneldevision_trans.values)+")")
 
 print(" Adding Mirror Transformation")
 mirror_trans = HorizontalMirroringTransformation(MIRROR_PROB)
@@ -127,49 +120,127 @@ def variable_with_weight_decay(name, shape):
     tf.add_to_collection('weight_decays', weight_decay)
     return var
 
-def variable_bias(shape):
-    initial=tf.constant(0.1, shape=shape)
-    return tf.Variable(initial)
-    #return tf.get_variable(shape=shape, initializer=tf.contrib.layers.xavier_initializer())
+def variable_bias(name, shape):
+    #initial=tf.constant(0.1, shape=shape)
+    #return tf.Variable(initial)
+    return tf.get_variable(name, shape, initializer=tf.constant_initializer(0.0))
 
 def conv2d(x, W):
     return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
+
+def conv2d_strides(x, W, strides):
+    return tf.nn.conv2d(x, W, strides=[1, strides, strides, 1], padding='SAME')
 
 def max_pool_2x2(x):
     return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],
                         strides=[1, 2, 2, 1], padding='SAME')
 
-#basic architecture
+def res(x, in_channels, out_channels, layer_name):
+    #layer1 convolution
+    W_conv1 = variable_with_weight_decay(layer_name+'_W_conv1', [3, 3, in_channels, out_channels]) #patchsize, channels, features
+    b_conv1 = variable_bias(layer_name+'_b_conv1',[out_channels])
+    h_conv1 = tf.nn.relu(conv2d(x, W_conv1) + b_conv1)
+    
+    #layer2 convolution
+    W_conv2 = variable_with_weight_decay(layer_name+'_W_conv2', [3, 3, in_channels, out_channels]) #patchsize, channels, features
+    b_conv2 = variable_bias(layer_name+'_b_conv2',[out_channels])
+    h_conv2 = tf.nn.relu((conv2d(h_conv1, W_conv2) + b_conv2) + x)
+    return h_conv2
+
+
+# #basic architecture
+# with tf.device(common.configs["devicename"]):
+    # #layer0 input
+    # x = tf.placeholder(tf.float32, [None, 24, 24, 3], name="x")
+    # #x_image = tf.reshape(x, [-1,32,32,3]) #batch, size, channel
+
+    # #layer1 convolution
+    # W_conv1 = variable_with_weight_decay('W_conv1', [3, 3, 3, 16]) #patchsize, channels, features
+    # b_conv1 = variable_bias([16])
+    # h_conv1 = tf.nn.relu(conv2d(x, W_conv1) + b_conv1)
+    # h_pool1 = max_pool_2x2(h_conv1)
+
+    # #layer2 convolution
+    # W_conv2 = variable_with_weight_decay('W_conv2', [3, 3, 16, 32]) #patchsize, channels, features
+    # b_conv2 = variable_bias([32])
+    # h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
+    # h_pool2 = max_pool_2x2(h_conv2)
+
+    # #layer3 convolution
+    # W_conv3 = variable_with_weight_decay('W_conv3', [3, 3, 32, 32]) #patchsize, channels, features
+    # b_conv3 = variable_bias([32])
+    # h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3)
+    # h_pool3 = max_pool_2x2(h_conv3)
+
+    # #layer3 flatten
+    # h_pool3_flat = tf.reshape(h_pool3, [-1, 3*3*32])
+    # W_fc1 = variable_with_weight_decay('W_fc1', [3*3*32, 128])
+    # b_fc1 = variable_bias([128])
+    # #W_fc1 = variable_with_weight_decay('W_fc1', [3*3*32, nclasses])
+    # #b_fc1 = variable_bias([nclasses])
+
+
+    # h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
+    
+    # #dropout
+    # keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+    # h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+    
+    # #second fully connected layer
+    # W_fc2 = variable_with_weight_decay('W_fc2', [128, nclasses])
+    # b_fc2 = variable_bias([nclasses])
+    
+    # y = tf.add(tf.matmul(h_fc1_drop, W_fc2), b_fc2, name="y")
+
+    # y_ = tf.placeholder(tf.float32, [None, nclasses])
+
+#res net architecture
 with tf.device(common.configs["devicename"]):
     #layer0 input
     x = tf.placeholder(tf.float32, [None, 24, 24, 3], name="x")
     #x_image = tf.reshape(x, [-1,32,32,3]) #batch, size, channel
 
     #layer1 convolution
-    W_conv1 = variable_with_weight_decay('W_conv1', [3, 3, 3, 16]) #patchsize, channels, features
-    b_conv1 = variable_bias([16])
-    h_conv1 = tf.nn.relu(conv2d(x, W_conv1) + b_conv1)
-    h_pool1 = max_pool_2x2(h_conv1)
+    #[24,24,3] -> [12,12,64]
+    W_conv1 = variable_with_weight_decay('W_conv1', [5, 5, 3, 64]) #patchsize, channels, features
+    b_conv1 = variable_bias('b_conv1',[64])
+    h_conv1 = tf.nn.relu(conv2d_strides(x, W_conv1, 2) + b_conv1)
+    #h_pool1 = max_pool_2x2(h_conv1)
+    
+    #res1
+    res1 = res(h_conv1, 64, 64, 'res1')
+    
+    #res2
+    res2 = res(res1, 64, 64, 'res2')
+    
+    #res3
+    res3 = res(res2, 64, 64, 'res3')
 
     #layer2 convolution
-    W_conv2 = variable_with_weight_decay('W_conv2', [3, 3, 16, 32]) #patchsize, channels, features
-    b_conv2 = variable_bias([32])
-    h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
-    h_pool2 = max_pool_2x2(h_conv2)
+    #[12,12,64] -> [6,6,128]
+    W_conv2 = variable_with_weight_decay('W_conv2', [3, 3, 64, 128]) #patchsize, channels, features
+    b_conv2 = variable_bias('b_conv2',[128])
+    h_conv2 = tf.nn.relu(conv2d_strides(res3, W_conv2, 2) + b_conv2)
+    
+    #res4
+    res4 = res(h_conv2, 128, 128, 'res4')
+    
+    #res5
+    res5 = res(res4, 128, 128, 'res5')
+    
+    #res6
+    res6 = res(res5, 128, 128, 'res6')
 
     #layer3 convolution
-    W_conv3 = variable_with_weight_decay('W_conv3', [3, 3, 32, 32]) #patchsize, channels, features
-    b_conv3 = variable_bias([32])
-    h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3)
-    h_pool3 = max_pool_2x2(h_conv3)
+    #[6,6,128] -> [3,3, 256]
+    W_conv3 = variable_with_weight_decay('W_conv3', [3, 3, 128, 256]) #patchsize, channels, features
+    b_conv3 = variable_bias('b_conv3',[256])
+    h_conv3 = tf.nn.relu(conv2d_strides(res6, W_conv3, 2) + b_conv3)
 
     #layer3 flatten
-    h_pool3_flat = tf.reshape(h_pool3, [-1, 3*3*32])
-    W_fc1 = variable_with_weight_decay('W_fc1', [3*3*32, 128])
-    b_fc1 = variable_bias([128])
-    #W_fc1 = variable_with_weight_decay('W_fc1', [3*3*32, nclasses])
-    #b_fc1 = variable_bias([nclasses])
-
+    h_pool3_flat = tf.reshape(h_conv3, [-1, 3*3*256])
+    W_fc1 = variable_with_weight_decay('W_fc1', [3*3*256, 1024])
+    b_fc1 = variable_bias('b_fc1',[1024])
 
     h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
     
@@ -178,8 +249,8 @@ with tf.device(common.configs["devicename"]):
     h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
     
     #second fully connected layer
-    W_fc2 = variable_with_weight_decay('W_fc2', [128, nclasses])
-    b_fc2 = variable_bias([nclasses])
+    W_fc2 = variable_with_weight_decay('W_fc2', [1024, nclasses])
+    b_fc2 = variable_bias('b_fc2',[nclasses])
     
     y = tf.add(tf.matmul(h_fc1_drop, W_fc2), b_fc2, name="y")
 
@@ -261,30 +332,3 @@ for epoch in range(0, EPOCHS):
 
 print("Best validation accuracy: %.3f (epoch %i)" % (best_model_accuracy, best_model_epoch))
 
-
-print("Testing best model on test set ...")
-print("Setting up batch transformations for Test Set ...")
-val_batch_tform_seq = TransformationSequence()
-
-print(" Adding Mirror Transformation")
-mirror_trans = HorizontalMirroringTransformation(MIRROR_PROB)
-val_batch_tform_seq.add_transformation(mirror_trans)
-
-print(" Adding Center Crop Transformation")
-center_crop_trans = CenterCropTransformation(CROP_WIDTH, CROP_HEIGHT)
-val_batch_tform_seq.add_transformation(center_crop_trans)
-
-test_minibatchgen=MiniBatchGenerator(test, 100, val_batch_tform_seq)
-print(" [test] "+str(test.size())+" samples, "+str(test_minibatchgen.nbatches())+" minibatches of size "+str(test_minibatchgen.getbs())+"")
-
-test_accuracies = []
-for i in range(0, test_minibatchgen.nbatches()):
-    batch_data, batch_labels, _ = test_minibatchgen.batch(i)
-    batch_labels_one_hot=np.eye(10)[batch_labels]
-
-    test_accuracy=sess.run(accuracy, feed_dict={x: batch_data, y_: batch_labels_one_hot, keep_prob: 1.0})
-
-    test_accuracies.append(test_accuracy)
-
-test_accuracy = np.mean(test_accuracies)
-print("Accuracy: %.2f%%" % (test_accuracy * 100))
