@@ -17,9 +17,9 @@ CROP_HEIGHT = 48
 
 cifar10batchesdir=common.configs["cifar10batchesdir"]
 
-imagepath = "cat.jpg"
+imagepath = "../specification/"
 imageName = "cat.jpg"
-sample = imread(imagepath)
+sample = imread(imagepath+imageName)
 savepath = "augmented_samples/"
 
 print("Creating Transformations")

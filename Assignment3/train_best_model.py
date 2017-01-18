@@ -5,16 +5,18 @@ import tensorflow as tf
 from Cifar10Dataset import Cifar10Dataset
 from ImageVectorizer import ImageVectorizer
 from MiniBatchGenerator import MiniBatchGenerator
-from Transformations import PerChannelSubtractionImageTransformation, FloatCastTransformation, PerChannelDivisionImageTransformation
+from Transformations import *
 from TransformationSequence import TransformationSequence
 import common
 
 EPOCHS = 100
 MOMENTUM = 0.9
-LEARNING_RATE = 0.001
+INIT_LEARNING_RATE = 0.01
 MINI_BATCH_SIZE = 64
 SAVE_PATH = "best_model.h5"
 EARLY_STOPP_EPOCH_LIMIT = 10
+LEARN_RATE_DECAY_EPOCH_LIMIT = 4
+LR_DECAY_RATE = 0.1
 WEIGHT_DECAY = 0.0001
 MIRROR_PROB = 0.5
 CROP_WIDTH = 24
@@ -137,6 +139,7 @@ def max_pool_2x2(x):
     return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],
                         strides=[1, 2, 2, 1], padding='SAME')
 
+#basic architecture
 with tf.device(common.configs["devicename"]):
     #layer0 input
     x = tf.placeholder(tf.float32, [None, 24, 24, 3], name="x")
@@ -171,7 +174,7 @@ with tf.device(common.configs["devicename"]):
     h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
     
     #dropout
-    keep_prob = tf.placeholder(tf.float32)
+    keep_prob = tf.placeholder(tf.float32, name='keep_prob')
     h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
     
     #second fully connected layer
@@ -185,7 +188,9 @@ with tf.device(common.configs["devicename"]):
 
 total_loss=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_) + tf.add_n(tf.get_collection('weight_decays')))
 
-train_step = tf.train.MomentumOptimizer(LEARNING_RATE, MOMENTUM).minimize(total_loss)
+learning_rate = tf.Variable(INIT_LEARNING_RATE, name='learning_rate')
+
+train_step = tf.train.MomentumOptimizer(learning_rate, MOMENTUM).minimize(total_loss)
 
 
 #session
@@ -213,7 +218,7 @@ for epoch in range(0, EPOCHS):
         batch_data, batch_labels, _ = train_minibatchgen.batch(i)
         batch_labels_one_hot=np.eye(nclasses)[batch_labels]
 
-        sess.run(train_step, feed_dict={x: batch_data, y_: batch_labels_one_hot})
+        sess.run(train_step, feed_dict={x: batch_data, y_: batch_labels_one_hot, keep_prob: 0.5})
 
         train_accuracy, train_loss=sess.run([accuracy, total_loss], feed_dict={x: batch_data, y_: batch_labels_one_hot, keep_prob: 0.5})
 
@@ -240,12 +245,19 @@ for epoch in range(0, EPOCHS):
         best_model_epoch = epoch
         save_path = saver.save(sess, SAVE_PATH)
         no_improvement_count = 0
+        no_improvement_count_lr = 0
     else:
         no_improvement_count += 1
+        no_improvement_count_lr += 1
 
     if no_improvement_count >= EARLY_STOPP_EPOCH_LIMIT:
         print("Validation accuracy did not improve for %i epochs, stopping" % EARLY_STOPP_EPOCH_LIMIT)
         break
+    
+    if no_improvement_count_lr >= LEARN_RATE_DECAY_EPOCH_LIMIT:
+        print("Validation accuracy did not improve for %i epochs, decreasing learning rate" % LEARN_RATE_DECAY_EPOCH_LIMIT)
+        learning_rate.assign(learning_rate*LR_DECAY_RATE)
+        no_improvement_count_lr = 0
 
 print("Best validation accuracy: %.3f (epoch %i)" % (best_model_accuracy, best_model_epoch))
 
