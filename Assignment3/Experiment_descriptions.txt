@@ -1,0 +1,32 @@
+
+////////////////////////////////////////
+///////////  EXPERIMENT 1 //////////////
+////////////////////////////////////////
+
+EPOCHS = 100
+MOMENTUM = 0.9
+INIT_LEARNING_RATE = 0.01
+MINI_BATCH_SIZE = 64
+SAVE_PATH = "/dlvc/assignments/assignment3/group4/best_model.h5"
+EARLY_STOPP_EPOCH_LIMIT = 10
+LEARN_RATE_DECAY_EPOCH_LIMIT = 4
+LR_DECAY_RATE = 0.1
+WEIGHT_DECAY = 0.0001
+MIRROR_PROB = 0.5
+CROP_WIDTH = 24
+CROP_HEIGHT = 24
+
+train_script.sh.o577
+Best validation accuracy: 0.834 (epoch 44)
+
+
+
+////////////////////////////////////////
+///////////  EXPERIMENT 2 //////////////
+////////////////////////////////////////
+
+Added train_minibatchgen.shuffle() at the start of each epoch
+
+
+train_script.sh.o621
+Best validation accuracy: 0.858 (epoch 71)
