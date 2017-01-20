@@ -13,7 +13,7 @@ EPOCHS = 100
 MOMENTUM = 0.9
 LEARNING_RATE = 0.001
 MINI_BATCH_SIZE = 64
-SAVE_PATH = "model_best.h5"
+SAVE_PATH = "/dlvc/assignments/assignment3/group4/cnn_classify_cifar10_model_best.h5"
 EARLY_STOPP_EPOCH_LIMIT = 10
 WEIGHT_DECAY = 0.0001
 
@@ -23,99 +23,75 @@ cifar10batchesdir=common.configs["cifar10batchesdir"]
 print("Loading Cifar10Dataset ...")
 
 train= Cifar10Dataset(cifar10batchesdir, 'train')
-train_vectorized = ImageVectorizer(train)
-train_data, train_labels, train_label_names=train_vectorized.getDataset()
-train_labels_one_hot=np.eye(10)[train_labels]
+
 
 val= Cifar10Dataset(cifar10batchesdir, 'val')
-val_vectorized = ImageVectorizer(val)
-val_data, val_labels, val_label_names=val_vectorized.getDataset()
-val_labels_one_hot=np.eye(10)[val_labels]
+
 
 test= Cifar10Dataset(cifar10batchesdir, 'test')
-test_vectorized = ImageVectorizer(test)
-test_data, test_labels, test_label_names=test_vectorized.getDataset()
-test_labels_one_hot=np.eye(10)[test_labels]
+
 
 nclasses=train.nclasses()
-vectorsize=len(train_data[0])
+
 
 #preprocessing
 print("Setting up preprocessing ...")
-transformation_seq=TransformationSequence()
+train_transformation_seq=TransformationSequence()
 
 print(" Adding FloatCastTransformation")
 floatcast_trans=FloatCastTransformation()
-transformation_seq.add_transformation(floatcast_trans)
+train_transformation_seq.add_transformation(floatcast_trans)
 
 perchannelsubtraction_trans=PerChannelSubtractionImageTransformation.from_dataset_mean(train)
-transformation_seq.add_transformation(perchannelsubtraction_trans)
+train_transformation_seq.add_transformation(perchannelsubtraction_trans)
 print (" Adding PerChannelSubtractionImageTransformation [train] (value: "+str(perchannelsubtraction_trans.values)+")")
 
 perchanneldevision_trans=PerChannelDivisionImageTransformation.from_dataset_stddev(train)
-transformation_seq.add_transformation(perchanneldevision_trans)
+train_transformation_seq.add_transformation(perchanneldevision_trans)
 print (" Adding PerChannelDivisionImageTransformation [train] (value: "+str(perchanneldevision_trans.values)+")")
 
-newdata=[]
-for i in range(train.size()):
-    newsample=transformation_seq.apply(train.sample(i)[0])
-    newdata.append(newsample)
-train_data=np.array(newdata)
-train.setDataset(train_data, train_labels, train_label_names)
 
 
 print("Setting up preprocessing ...")
-transformation_seq=TransformationSequence()
+val_transformation_seq=TransformationSequence()
 
 print(" Adding FloatCastTransformation")
 floatcast_trans=FloatCastTransformation()
-transformation_seq.add_transformation(floatcast_trans)
+val_transformation_seq.add_transformation(floatcast_trans)
 
 perchannelsubtraction_trans=PerChannelSubtractionImageTransformation.from_dataset_mean(val)
-transformation_seq.add_transformation(perchannelsubtraction_trans)
+val_transformation_seq.add_transformation(perchannelsubtraction_trans)
 print (" Adding PerChannelSubtractionImageTransformation [val] (value: "+str(perchannelsubtraction_trans.values)+")")
 
 perchanneldevision_trans=PerChannelDivisionImageTransformation.from_dataset_stddev(val)
-transformation_seq.add_transformation(perchanneldevision_trans)
+val_transformation_seq.add_transformation(perchanneldevision_trans)
 print (" Adding PerChannelDivisionImageTransformation [val] (value: "+str(perchanneldevision_trans.values)+")")
 
-newdata=[]
-for i in range(val.size()):
-    newsample=transformation_seq.apply(val.sample(i)[0])
-    newdata.append(newsample)
-val_data=np.array(newdata)
-val.setDataset(val_data, val_labels, val_label_names)
 
 
 print("Setting up preprocessing ...")
-transformation_seq=TransformationSequence()
+test_transformation_seq=TransformationSequence()
 
 print(" Adding FloatCastTransformation")
 floatcast_trans=FloatCastTransformation()
-transformation_seq.add_transformation(floatcast_trans)
+test_transformation_seq.add_transformation(floatcast_trans)
 
 perchannelsubtraction_trans=PerChannelSubtractionImageTransformation.from_dataset_mean(test)
-transformation_seq.add_transformation(perchannelsubtraction_trans)
+test_transformation_seq.add_transformation(perchannelsubtraction_trans)
 print (" Adding PerChannelSubtractionImageTransformation [test] (value: "+str(perchannelsubtraction_trans.values)+")")
 
 perchanneldevision_trans=PerChannelDivisionImageTransformation.from_dataset_stddev(test)
-transformation_seq.add_transformation(perchanneldevision_trans)
+test_transformation_seq.add_transformation(perchanneldevision_trans)
 print (" Adding PerChannelDivisionImageTransformation [test] (value: "+str(perchanneldevision_trans.values)+")")
 
-newdata=[]
-for i in range(test.size()):
-    newsample=transformation_seq.apply(test.sample(i)[0])
-    newdata.append(newsample)
-test_data=np.array(newdata)
-test.setDataset(test_data, test_labels, test_label_names)
 
 #initializing minibatch
 print("Initializing minibatch generators ...")
 
-train_minibatchgen=MiniBatchGenerator(train, MINI_BATCH_SIZE)
+train_minibatchgen=MiniBatchGenerator(train, MINI_BATCH_SIZE, train_transformation_seq)
 print(" [train] "+str(train.size())+" samples, "+str(train_minibatchgen.nbatches())+" minibatches of size "+str(train_minibatchgen.getbs())+"")
 
-val_minibatchgen=MiniBatchGenerator(val, 100)
+val_minibatchgen=MiniBatchGenerator(val, 100, val_transformation_seq)
 print(" [val] "+str(val.size())+" samples, "+str(val_minibatchgen.nbatches())+" minibatches of size "+str(val_minibatchgen.getbs())+"")
 
 #defining NN structure
@@ -201,6 +177,7 @@ for epoch in range(0, EPOCHS):
     train_accuracies=[]
     train_losses=[]
     val_accuracies=[]
+    train_minibatchgen.shuffle()
     for i in range(0, train_minibatchgen.nbatches()):
         batch_data, batch_labels, _ = train_minibatchgen.batch(i)
         batch_labels_one_hot=np.eye(nclasses)[batch_labels]
@@ -243,7 +220,7 @@ print("Best validation accuracy: %.3f (epoch %i)" % (best_model_accuracy, best_m
 
 
 print("Testing best model on test set ...")
-test_minibatchgen=MiniBatchGenerator(test, 100)
+test_minibatchgen=MiniBatchGenerator(test, 100, test_transformation_seq)
 print(" [test] "+str(test.size())+" samples, "+str(test_minibatchgen.nbatches())+" minibatches of size "+str(test_minibatchgen.getbs())+"")
 
 test_accuracies = []

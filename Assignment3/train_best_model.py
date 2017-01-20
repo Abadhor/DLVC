@@ -13,7 +13,7 @@ EPOCHS = 100
 MOMENTUM = 0.9
 INIT_LEARNING_RATE = 0.01
 MINI_BATCH_SIZE = 64
-SAVE_PATH = "best_model.h5"
+SAVE_PATH = "/dlvc/assignments/assignment3/group4/best_model.h5"
 EARLY_STOPP_EPOCH_LIMIT = 10
 LEARN_RATE_DECAY_EPOCH_LIMIT = 4
 LR_DECAY_RATE = 0.1
@@ -285,6 +285,7 @@ for epoch in range(0, EPOCHS):
     train_accuracies=[]
     train_losses=[]
     val_accuracies=[]
+    train_minibatchgen.shuffle()
     for i in range(0, train_minibatchgen.nbatches()):
         batch_data, batch_labels, _ = train_minibatchgen.batch(i)
         batch_labels_one_hot=np.eye(nclasses)[batch_labels]
