@@ -3,6 +3,9 @@
 ///////////  EXPERIMENT 1 //////////////
 ////////////////////////////////////////
 
+Bugfix:
+PerChannelSubtractionImageTransformation and PerChannelDivisionImageTransformation always use training set now
+
 EPOCHS = 100
 MOMENTUM = 0.9
 INIT_LEARNING_RATE = 0.01
@@ -16,17 +19,66 @@ MIRROR_PROB = 0.5
 CROP_WIDTH = 24
 CROP_HEIGHT = 24
 
-train_script.sh.o577
-Best validation accuracy: 0.834 (epoch 44)
+01_train_script.sh.o711
+Best validation accuracy: 0.840 (epoch 89)
+
+
+////////////////////////////////////////
+///////////  EXPERIMENT 3 //////////////
+////////////////////////////////////////
+
+Set Depth of layer3 flatten from 1024 to 128
+
+01_train_script.sh.o715
+Best validation accuracy: 0.834 (epoch 59)
+
+
+--> reverted
+
+////////////////////////////////////////
+///////////  EXPERIMENT 4 //////////////
+////////////////////////////////////////
+
+Doubled the number of res layers
+
+01_train_script.sh.o716
+Best validation accuracy: 0.839 (epoch 66)
+
+--> reverted
+
+////////////////////////////////////////
+///////////  EXPERIMENT 5 //////////////
+////////////////////////////////////////
+
+WEIGHT_DECAY = 0.001
+
+
+01_train_script.sh.o709
+Best validation accuracy: 0.824 (epoch 40)
+
+-> reverted
+
+
+////////////////////////////////////////
+///////////  EXPERIMENT 6 //////////////
+////////////////////////////////////////
+
+WEIGHT_DECAY = 0.00001
+
+01_train_script.sh.o710
+Best validation accuracy: 0.822 (epoch 64)
+
+--> reverted
 
 
 
 ////////////////////////////////////////
-///////////  EXPERIMENT 2 //////////////
+///////////  EXPERIMENT 7 //////////////
 ////////////////////////////////////////
 
-Added train_minibatchgen.shuffle() at the start of each epoch
+EPOCHS = 200
+EARLY_STOPP_EPOCH_LIMIT = 20
+LEARN_RATE_DECAY_EPOCH_LIMIT = 5
 
-
-train_script.sh.o621
-Best validation accuracy: 0.858 (epoch 71)
+01_train_script.sh.o718
+Best validation accuracy: 0.844 (epoch 116)
