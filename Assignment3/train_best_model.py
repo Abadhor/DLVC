@@ -9,13 +9,13 @@ from Transformations import *
 from TransformationSequence import TransformationSequence
 import common
 
-EPOCHS = 100
+EPOCHS = 200
 MOMENTUM = 0.9
 INIT_LEARNING_RATE = 0.01
 MINI_BATCH_SIZE = 64
 SAVE_PATH = "/dlvc/assignments/assignment3/group4/best_model.h5"
-EARLY_STOPP_EPOCH_LIMIT = 10
-LEARN_RATE_DECAY_EPOCH_LIMIT = 4
+EARLY_STOPP_EPOCH_LIMIT = 20
+LEARN_RATE_DECAY_EPOCH_LIMIT = 5
 LR_DECAY_RATE = 0.1
 WEIGHT_DECAY = 0.0001
 MIRROR_PROB = 0.5
@@ -34,23 +34,6 @@ val= Cifar10Dataset(cifar10batchesdir, 'val')
 
 
 nclasses=train.nclasses()
-
-#preprocessing
-print("Setting up preprocessing...")
-transformation_seq=TransformationSequence()
-
-print(" Adding FloatCastTransformation")
-floatcast_trans=FloatCastTransformation()
-transformation_seq.add_transformation(floatcast_trans)
-
-perchannelsubtraction_trans=PerChannelSubtractionImageTransformation.from_dataset_mean(train)
-transformation_seq.add_transformation(perchannelsubtraction_trans)
-print (" Adding PerChannelSubtractionImageTransformation [train] (value: "+str(perchannelsubtraction_trans.values)+")")
-
-perchanneldevision_trans=PerChannelDivisionImageTransformation.from_dataset_stddev(train)
-transformation_seq.add_transformation(perchanneldevision_trans)
-print (" Adding PerChannelDivisionImageTransformation [train] (value: "+str(perchanneldevision_trans.values)+")")
-
 
 #initializing minibatch
 print("Initializing minibatch generators ...")
@@ -82,30 +65,7 @@ train_minibatchgen=MiniBatchGenerator(train, MINI_BATCH_SIZE, train_batch_tform_
 print(" [train] "+str(train.size())+" samples, "+str(train_minibatchgen.nbatches())+" minibatches of size "+str(train_minibatchgen.getbs())+"")
 
 
-print("Setting up batch transformations for Validation Set ...")
-val_batch_tform_seq = TransformationSequence()
-
-print(" Adding FloatCastTransformation")
-floatcast_trans=FloatCastTransformation()
-val_batch_tform_seq.add_transformation(floatcast_trans)
-
-perchannelsubtraction_trans=PerChannelSubtractionImageTransformation.from_dataset_mean(val)
-val_batch_tform_seq.add_transformation(perchannelsubtraction_trans)
-print (" Adding PerChannelSubtractionImageTransformation [val] (value: "+str(perchannelsubtraction_trans.values)+")")
-
-perchanneldevision_trans=PerChannelDivisionImageTransformation.from_dataset_stddev(val)
-val_batch_tform_seq.add_transformation(perchanneldevision_trans)
-print (" Adding PerChannelDivisionImageTransformation [val] (value: "+str(perchanneldevision_trans.values)+")")
-
-print(" Adding Mirror Transformation")
-mirror_trans = HorizontalMirroringTransformation(MIRROR_PROB)
-val_batch_tform_seq.add_transformation(mirror_trans)
-
-print(" Adding Center Crop Transformation")
-center_crop_trans = CenterCropTransformation(CROP_WIDTH, CROP_HEIGHT)
-val_batch_tform_seq.add_transformation(center_crop_trans)
-
-val_minibatchgen=MiniBatchGenerator(val, 100, val_batch_tform_seq)
+val_minibatchgen=MiniBatchGenerator(val, 100, train_batch_tform_seq)
 print(" [val] "+str(val.size())+" samples, "+str(val_minibatchgen.nbatches())+" minibatches of size "+str(val_minibatchgen.getbs())+"")
 
 #defining NN structure
@@ -199,12 +159,25 @@ with tf.device(common.configs["devicename"]):
     #layer0 input
     x = tf.placeholder(tf.float32, [None, 24, 24, 3], name="x")
     #x_image = tf.reshape(x, [-1,32,32,3]) #batch, size, channel
+    
+    W_conv01 = variable_with_weight_decay('W_conv01', [3, 3, 3, 32]) #patchsize, channels, features
+    b_conv01 = variable_bias('b_conv01',[32])
+    h_conv01 = tf.nn.relu(conv2d_strides(x, W_conv01, 1) + b_conv01)
+    
+    #res01
+    res01 = res(h_conv01, 32, 32, 'res01')
+    
+    #res02
+    res02 = res(res01, 32, 32, 'res02')
+    
+    #res03
+    res03 = res(res02, 32, 32, 'res03')
 
     #layer1 convolution
     #[24,24,3] -> [12,12,64]
-    W_conv1 = variable_with_weight_decay('W_conv1', [5, 5, 3, 64]) #patchsize, channels, features
+    W_conv1 = variable_with_weight_decay('W_conv1', [5, 5, 32, 64]) #patchsize, channels, features
     b_conv1 = variable_bias('b_conv1',[64])
-    h_conv1 = tf.nn.relu(conv2d_strides(x, W_conv1, 2) + b_conv1)
+    h_conv1 = tf.nn.relu(conv2d_strides(res03, W_conv1, 2) + b_conv1)
     #h_pool1 = max_pool_2x2(h_conv1)
     
     #res1
@@ -215,6 +188,15 @@ with tf.device(common.configs["devicename"]):
     
     #res3
     res3 = res(res2, 64, 64, 'res3')
+    
+    #res11
+    #res11 = res(res3, 64, 64, 'res11')
+    
+    #res21
+    #res21 = res(res11, 64, 64, 'res21')
+    
+    #res31
+    #res31 = res(res21, 64, 64, 'res31')
 
     #layer2 convolution
     #[12,12,64] -> [6,6,128]
@@ -230,6 +212,15 @@ with tf.device(common.configs["devicename"]):
     
     #res6
     res6 = res(res5, 128, 128, 'res6')
+    
+    #res41
+    #res41 = res(res6, 128, 128, 'res41')
+    
+    #res51
+    #res51 = res(res41, 128, 128, 'res51')
+    
+    #res61
+    #res61 = res(res51, 128, 128, 'res61')
 
     #layer3 convolution
     #[6,6,128] -> [3,3, 256]

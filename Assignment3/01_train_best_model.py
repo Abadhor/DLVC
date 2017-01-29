@@ -159,12 +159,25 @@ with tf.device(common.configs["devicename"]):
     #layer0 input
     x = tf.placeholder(tf.float32, [None, 24, 24, 3], name="x")
     #x_image = tf.reshape(x, [-1,32,32,3]) #batch, size, channel
+    
+    W_conv01 = variable_with_weight_decay('W_conv01', [3, 3, 3, 32]) #patchsize, channels, features
+    b_conv01 = variable_bias('b_conv01',[32])
+    h_conv01 = tf.nn.relu(conv2d_strides(x, W_conv01, 1) + b_conv01)
+    
+    #res01
+    res01 = res(h_conv01, 32, 32, 'res01')
+    
+    #res02
+    res02 = res(res01, 32, 32, 'res02')
+    
+    #res03
+    res03 = res(res02, 32, 32, 'res03')
 
     #layer1 convolution
     #[24,24,3] -> [12,12,64]
-    W_conv1 = variable_with_weight_decay('W_conv1', [5, 5, 3, 64]) #patchsize, channels, features
+    W_conv1 = variable_with_weight_decay('W_conv1', [5, 5, 32, 64]) #patchsize, channels, features
     b_conv1 = variable_bias('b_conv1',[64])
-    h_conv1 = tf.nn.relu(conv2d_strides(x, W_conv1, 2) + b_conv1)
+    h_conv1 = tf.nn.relu(conv2d_strides(res03, W_conv1, 2) + b_conv1)
     #h_pool1 = max_pool_2x2(h_conv1)
     
     #res1

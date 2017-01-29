@@ -1,0 +1,128 @@
+Loading Cifar10Dataset ...
+Initializing minibatch generators ...
+Setting up batch transformations for Training Set ...
+ Adding FloatCastTransformation
+ Adding PerChannelSubtractionImageTransformation [train] (value: [ 125.30846343  122.91098958  113.80115994])
+ Adding PerChannelDivisionImageTransformation [train] (value: [ 63.04612901  62.15941908  66.74284715])
+ Adding Mirror Transformation
+ Adding Random Crop Transformation
+ [train] 40000 samples, 625 minibatches of size 64
+ [val] 10000 samples, 100 minibatches of size 100
+Initializing CNN and optimizer ...
+Training for 100 epochs ...
+[Epoch   0] loss: 1.791, training accuracy: 0.338, validation accuracy: 0.398
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch   1] loss: 1.489, training accuracy: 0.456, validation accuracy: 0.454
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch   2] loss: 1.331, training accuracy: 0.521, validation accuracy: 0.530
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch   3] loss: 1.212, training accuracy: 0.570, validation accuracy: 0.555
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch   4] loss: 1.102, training accuracy: 0.614, validation accuracy: 0.600
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch   5] loss: 1.014, training accuracy: 0.646, validation accuracy: 0.632
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch   6] loss: 0.959, training accuracy: 0.667, validation accuracy: 0.650
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch   7] loss: 0.896, training accuracy: 0.689, validation accuracy: 0.672
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch   8] loss: 0.845, training accuracy: 0.709, validation accuracy: 0.689
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch   9] loss: 0.810, training accuracy: 0.723, validation accuracy: 0.693
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  10] loss: 0.771, training accuracy: 0.737, validation accuracy: 0.699
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  11] loss: 0.743, training accuracy: 0.747, validation accuracy: 0.717
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  12] loss: 0.705, training accuracy: 0.761, validation accuracy: 0.718
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  13] loss: 0.672, training accuracy: 0.772, validation accuracy: 0.738
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  14] loss: 0.650, training accuracy: 0.781, validation accuracy: 0.737
+[Epoch  15] loss: 0.631, training accuracy: 0.788, validation accuracy: 0.747
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  16] loss: 0.608, training accuracy: 0.796, validation accuracy: 0.757
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  17] loss: 0.596, training accuracy: 0.798, validation accuracy: 0.756
+[Epoch  18] loss: 0.576, training accuracy: 0.809, validation accuracy: 0.760
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  19] loss: 0.559, training accuracy: 0.814, validation accuracy: 0.764
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  20] loss: 0.543, training accuracy: 0.820, validation accuracy: 0.768
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  21] loss: 0.533, training accuracy: 0.823, validation accuracy: 0.776
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  22] loss: 0.519, training accuracy: 0.827, validation accuracy: 0.776
+[Epoch  23] loss: 0.502, training accuracy: 0.832, validation accuracy: 0.770
+[Epoch  24] loss: 0.488, training accuracy: 0.838, validation accuracy: 0.780
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  25] loss: 0.484, training accuracy: 0.841, validation accuracy: 0.788
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  26] loss: 0.470, training accuracy: 0.843, validation accuracy: 0.789
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  27] loss: 0.460, training accuracy: 0.848, validation accuracy: 0.787
+[Epoch  28] loss: 0.445, training accuracy: 0.853, validation accuracy: 0.791
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  29] loss: 0.448, training accuracy: 0.853, validation accuracy: 0.793
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  30] loss: 0.437, training accuracy: 0.859, validation accuracy: 0.792
+[Epoch  31] loss: 0.429, training accuracy: 0.860, validation accuracy: 0.783
+[Epoch  32] loss: 0.416, training accuracy: 0.865, validation accuracy: 0.800
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  33] loss: 0.410, training accuracy: 0.868, validation accuracy: 0.784
+[Epoch  34] loss: 0.414, training accuracy: 0.866, validation accuracy: 0.798
+[Epoch  35] loss: 0.403, training accuracy: 0.869, validation accuracy: 0.803
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  36] loss: 0.390, training accuracy: 0.876, validation accuracy: 0.798
+[Epoch  37] loss: 0.389, training accuracy: 0.874, validation accuracy: 0.796
+[Epoch  38] loss: 0.381, training accuracy: 0.877, validation accuracy: 0.803
+[Epoch  39] loss: 0.372, training accuracy: 0.880, validation accuracy: 0.805
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  40] loss: 0.371, training accuracy: 0.880, validation accuracy: 0.808
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  41] loss: 0.364, training accuracy: 0.884, validation accuracy: 0.802
+[Epoch  42] loss: 0.360, training accuracy: 0.886, validation accuracy: 0.803
+[Epoch  43] loss: 0.357, training accuracy: 0.887, validation accuracy: 0.806
+[Epoch  44] loss: 0.347, training accuracy: 0.888, validation accuracy: 0.810
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  45] loss: 0.341, training accuracy: 0.891, validation accuracy: 0.808
+[Epoch  46] loss: 0.347, training accuracy: 0.890, validation accuracy: 0.809
+[Epoch  47] loss: 0.337, training accuracy: 0.893, validation accuracy: 0.811
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  48] loss: 0.332, training accuracy: 0.896, validation accuracy: 0.812
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  49] loss: 0.326, training accuracy: 0.898, validation accuracy: 0.806
+[Epoch  50] loss: 0.328, training accuracy: 0.896, validation accuracy: 0.816
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  51] loss: 0.321, training accuracy: 0.899, validation accuracy: 0.815
+[Epoch  52] loss: 0.317, training accuracy: 0.901, validation accuracy: 0.816
+[Epoch  53] loss: 0.312, training accuracy: 0.901, validation accuracy: 0.814
+[Epoch  54] loss: 0.316, training accuracy: 0.900, validation accuracy: 0.815
+Validation accuracy did not improve for 4 epochs, decreasing learning rate
+[Epoch  55] loss: 0.309, training accuracy: 0.905, validation accuracy: 0.807
+[Epoch  56] loss: 0.305, training accuracy: 0.906, validation accuracy: 0.807
+[Epoch  57] loss: 0.305, training accuracy: 0.904, validation accuracy: 0.815
+[Epoch  58] loss: 0.299, training accuracy: 0.908, validation accuracy: 0.817
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  59] loss: 0.294, training accuracy: 0.908, validation accuracy: 0.817
+[Epoch  60] loss: 0.292, training accuracy: 0.911, validation accuracy: 0.821
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  61] loss: 0.297, training accuracy: 0.908, validation accuracy: 0.811
+[Epoch  62] loss: 0.289, training accuracy: 0.911, validation accuracy: 0.804
+[Epoch  63] loss: 0.290, training accuracy: 0.912, validation accuracy: 0.813
+[Epoch  64] loss: 0.281, training accuracy: 0.915, validation accuracy: 0.822
+New best validation accuracy, saving model to "/dlvc/assignments/assignment3/group4/best_model.h5"
+[Epoch  65] loss: 0.285, training accuracy: 0.913, validation accuracy: 0.814
+[Epoch  66] loss: 0.274, training accuracy: 0.916, validation accuracy: 0.813
+[Epoch  67] loss: 0.282, training accuracy: 0.914, validation accuracy: 0.815
+[Epoch  68] loss: 0.278, training accuracy: 0.914, validation accuracy: 0.809
+Validation accuracy did not improve for 4 epochs, decreasing learning rate
+[Epoch  69] loss: 0.275, training accuracy: 0.918, validation accuracy: 0.814
+[Epoch  70] loss: 0.277, training accuracy: 0.917, validation accuracy: 0.812
+[Epoch  71] loss: 0.270, training accuracy: 0.920, validation accuracy: 0.815
+[Epoch  72] loss: 0.271, training accuracy: 0.920, validation accuracy: 0.820
+Validation accuracy did not improve for 4 epochs, decreasing learning rate
+[Epoch  73] loss: 0.266, training accuracy: 0.921, validation accuracy: 0.816
+[Epoch  74] loss: 0.270, training accuracy: 0.920, validation accuracy: 0.816
+Validation accuracy did not improve for 10 epochs, stopping
+Best validation accuracy: 0.822 (epoch 64)

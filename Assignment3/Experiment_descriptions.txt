@@ -82,3 +82,23 @@ LEARN_RATE_DECAY_EPOCH_LIMIT = 5
 
 01_train_script.sh.o718
 Best validation accuracy: 0.844 (epoch 116)
+
+
+////////////////////////////////////////
+///////////  EXPERIMENT 8 //////////////
+////////////////////////////////////////
+
+
+EPOCHS = 200
+EARLY_STOPP_EPOCH_LIMIT = 20
+LEARN_RATE_DECAY_EPOCH_LIMIT = 5
+
+Added 3 more resnet layers with depth 32
+
+
+01_train_script.sh.o1024
+Best validation accuracy: 0.874 (epoch 151)
+
+
+
+
